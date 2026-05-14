@@ -21,6 +21,7 @@ import { createAgent, createPostRecord, publishReply, uploadImageBlob } from "./
 import { fetchJson } from "./http.ts";
 import {
   type Apod,
+  apodSchema,
   buildAltText,
   buildExternalDescription,
   buildMainPostText,
@@ -33,7 +34,7 @@ async function fetchApod(): Promise<Apod> {
   url.searchParams.set("api_key", apiKey);
   url.searchParams.set("thumbs", "true");
 
-  return fetchJson<Apod>(url);
+  return fetchJson(url, apodSchema);
 }
 
 async function publishTextPost(agent: Agent, apod: Apod) {

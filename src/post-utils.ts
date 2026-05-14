@@ -16,26 +16,34 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+import { z } from "zod";
+
 const BLUESKY_TEXT_LIMIT = 300;
 const MAIN_POST_HASHTAGS = "#Astronomy #Space";
 const EPIC_POST_TEXT = "Today's Earth selfie from one million miles away\n\n#Earth #Space";
 
-export type Apod = {
-  copyright?: string;
-  date: string;
-  explanation: string;
-  hdurl?: string;
-  media_type: "image" | "video" | string;
-  thumbnail_url?: string;
-  title: string;
-  url: string;
-};
+export const apodSchema = z.object({
+  copyright: z.string().optional(),
+  date: z.string(),
+  explanation: z.string(),
+  hdurl: z.url().optional(),
+  media_type: z.string(),
+  thumbnail_url: z.url().optional(),
+  title: z.string(),
+  url: z.url(),
+});
 
-export type EpicImage = {
-  caption: string;
-  date: string;
-  image: string;
-};
+export type Apod = z.infer<typeof apodSchema>;
+
+export const epicImageSchema = z.object({
+  caption: z.string(),
+  date: z.string(),
+  image: z.string(),
+});
+
+export const epicImagesSchema = z.array(epicImageSchema);
+
+export type EpicImage = z.infer<typeof epicImageSchema>;
 
 export function requireEnv(name: string): string {
   const value = process.env[name];

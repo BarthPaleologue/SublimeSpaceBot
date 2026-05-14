@@ -25,6 +25,7 @@ import {
   buildEpicImageUrl,
   buildEpicPostText,
   buildEpicSourceReplyText,
+  epicImagesSchema,
 } from "./post-utils.ts";
 
 async function fetchLatestEpicImage(): Promise<EpicImage> {
@@ -32,7 +33,7 @@ async function fetchLatestEpicImage(): Promise<EpicImage> {
   const url = new URL("https://api.nasa.gov/EPIC/api/natural");
   url.searchParams.set("api_key", apiKey);
 
-  const images = await fetchJson<EpicImage[]>(url);
+  const images = await fetchJson(url, epicImagesSchema);
   const latestImage = images.at(-1);
   if (!latestImage) {
     throw new Error("NASA EPIC did not return any natural color images");

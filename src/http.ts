@@ -16,10 +16,21 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-export async function fetchJson<T>(url: URL): Promise<T> {
+import { z } from "zod";
+
+export async function fetchJson<T>(url: URL, schema: z.ZodType<T>): Promise<T> {
   const response = await fetch(url);
   if (!response.ok) {
     throw new Error(`GET ${url.toString()} failed: ${response.status} ${response.statusText}`);
   }
-  return response.json() as Promise<T>;
+
+  const json: unknown = await response.json();
+  const result = schema.safeParse(json);
+  if (!result.success) {
+    throw new Error(
+      `GET ${url.toString()} returned invalid JSON: ${z.prettifyError(result.error)}`,
+    );
+  }
+
+  return result.data;
 }
