@@ -80,4 +80,18 @@ npm run install:cron
 
 This preserves unrelated cron entries and replaces existing Sublime Space Bot entries.
 
-All jobs run from the repository directory and append logs to `bot.log`.
+All jobs run from the repository directory, retry up to 3 times with 1 hour between attempts, and append logs to `bot.log`.
+
+## Operations
+
+View installed cron jobs:
+
+```bash
+crontab -l
+```
+
+Follow bot logs:
+
+```bash
+tail -f bot.log
+```

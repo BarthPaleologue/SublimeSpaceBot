@@ -27,12 +27,12 @@ const jobs = [
   {
     marker: `${CRON_MARKER_PREFIX}post-apod`,
     schedule: "0 17 * * *",
-    command: "npm run post:apod",
+    command: "npm run run:with-retries -- post:apod",
   },
   {
     marker: `${CRON_MARKER_PREFIX}post-epic`,
     schedule: "0 19 * * 3",
-    command: "npm run post:epic",
+    command: "npm run run:with-retries -- post:epic",
   },
 ];
 

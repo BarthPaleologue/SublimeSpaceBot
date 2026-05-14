@@ -11,6 +11,7 @@
     "post:epic": "node --env-file-if-exists=.env src/post-epic.ts",
     "dry-run:epic": "DRY_RUN=true node --env-file-if-exists=.env src/post-epic.ts",
     "install:cron": "node scripts/install-cron.ts",
+    "run:with-retries": "node scripts/run-with-retries.ts",
     "test": "node --test",
     "format": "oxfmt --ignore-path=.oxfmtignore",
     "format:check": "oxfmt --ignore-path=.oxfmtignore --check",
