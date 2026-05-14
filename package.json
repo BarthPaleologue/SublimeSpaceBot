@@ -1,0 +1,30 @@
+{
+  "name": "sublime-space-bot",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A simple bluesky bot to post sublime pictures of our universe.",
+  "license": "AGPL-3.0-or-later",
+  "type": "module",
+  "scripts": {
+    "post:apod": "node --env-file-if-exists=.env src/post-apod.ts",
+    "dry-run:apod": "DRY_RUN=true node --env-file-if-exists=.env src/post-apod.ts",
+    "test": "node --test",
+    "format": "oxfmt --ignore-path=.oxfmtignore",
+    "format:check": "oxfmt --ignore-path=.oxfmtignore --check",
+    "lint": "oxlint",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@atproto/api": "^0.16.1",
+    "sharp": "^0.34.5"
+  },
+  "devDependencies": {
+    "@types/node": "^25.7.0",
+    "oxfmt": "^0.49.0",
+    "oxlint": "^1.64.0",
+    "typescript": "^6.0.3"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}
