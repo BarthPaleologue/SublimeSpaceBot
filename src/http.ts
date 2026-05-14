@@ -24,7 +24,7 @@ export async function fetchJson<T>(url: URL, schema: z.ZodType<T>): Promise<T> {
     throw new Error(`GET ${url.toString()} failed: ${response.status} ${response.statusText}`);
   }
 
-  const json: unknown = await response.json();
+  const json = await response.json();
   const result = schema.safeParse(json);
   if (!result.success) {
     throw new Error(

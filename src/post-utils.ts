@@ -21,6 +21,12 @@ import { z } from "zod";
 const BLUESKY_TEXT_LIMIT = 300;
 const MAIN_POST_HASHTAGS = "#Astronomy #Space";
 const EPIC_POST_TEXT = "Today's Earth selfie from one million miles away\n\n#Earth #Space";
+const HUBBLE_POST_HASHTAGS = "#Hubble #Space";
+const HUBBLE_FIRST_ARCHIVE_YEAR = 2011;
+const HUBBLE_LAST_ARCHIVE_YEAR = 2025;
+const HUBBLE_ARCHIVE_YEAR_WEEKS = 52;
+export const HUBBLE_ARCHIVE_IMAGE_COUNT =
+  (HUBBLE_LAST_ARCHIVE_YEAR - HUBBLE_FIRST_ARCHIVE_YEAR + 1) * HUBBLE_ARCHIVE_YEAR_WEEKS;
 
 export const apodSchema = z.object({
   copyright: z.string().optional(),
@@ -44,6 +50,25 @@ export const epicImageSchema = z.object({
 export const epicImagesSchema = z.array(epicImageSchema);
 
 export type EpicImage = z.infer<typeof epicImageSchema>;
+
+export const hubbleImageDetailSchema = z
+  .object({
+    Credit: z.string().optional(),
+    Date: z.string().optional(),
+    Description: z.string(),
+    ID: z.string(),
+    ReferenceURL: z.url().optional(),
+    Title: z.string(),
+    formats_url: z
+      .object({
+        large: z.url().optional(),
+        screen: z.url(),
+      })
+      .passthrough(),
+  })
+  .passthrough();
+
+export type HubbleImageDetail = z.infer<typeof hubbleImageDetailSchema>;
 
 export function requireEnv(name: string): string {
   const value = process.env[name];
@@ -124,6 +149,90 @@ export function buildEpicImageUrl(epicImage: EpicImage): string {
   }
 
   return `https://epic.gsfc.nasa.gov/archive/natural/${year}/${month}/${day}/png/${epicImage.image}.png`;
+}
+
+export function buildHubblePostText(detail: HubbleImageDetail): string {
+  const separator = "\n\n";
+  const maxTitleLength = BLUESKY_TEXT_LIMIT - separator.length - HUBBLE_POST_HASHTAGS.length;
+  return `${truncateText(normalizeHubbleText(detail.Title), maxTitleLength)}${separator}${HUBBLE_POST_HASHTAGS}`;
+}
+
+export function buildHubbleSourceReplyText(detail: HubbleImageDetail): string {
+  const credit = normalizeHubbleText(detail.Credit) || "ESA/Hubble & NASA";
+  const source = detail.ReferenceURL ?? `https://esahubble.org/images/${detail.ID}/`;
+  return `Credit: ${credit}\nSource: ${source}`;
+}
+
+export function buildHubbleAltText(detail: HubbleImageDetail): string {
+  return truncateText(stripHtml(normalizeHubbleText(detail.Description)), 1000);
+}
+
+export function buildHubbleImageUrl(detail: HubbleImageDetail): string {
+  return detail.formats_url.large ?? detail.formats_url.screen;
+}
+
+export function buildHubbleArchiveImageId(offset: number): string {
+  if (!Number.isInteger(offset) || offset < 0) {
+    throw new Error(`Invalid ESA/Hubble archive offset: ${offset}`);
+  }
+
+  const normalizedOffset = offset % HUBBLE_ARCHIVE_IMAGE_COUNT;
+  const year = HUBBLE_FIRST_ARCHIVE_YEAR + Math.floor(normalizedOffset / HUBBLE_ARCHIVE_YEAR_WEEKS);
+  const week = (normalizedOffset % HUBBLE_ARCHIVE_YEAR_WEEKS) + 1;
+  return buildHubbleImageId(year, week);
+}
+
+export function getWeeklyArchiveOffset(currentDate: Date, startDate: Date): number {
+  const weekMs = 7 * 24 * 60 * 60 * 1000;
+  const elapsedMs = currentDate.getTime() - startDate.getTime();
+  return Math.max(0, Math.floor(elapsedMs / weekMs));
+}
+
+function buildHubbleImageId(year: number, week: number): string {
+  return `potw${String(year).slice(-2)}${String(week).padStart(2, "0")}a`;
+}
+
+function stripHtml(html: string): string {
+  return html
+    .replace(/<[^>]*>/g, "")
+    .replaceAll("&lt;", "<")
+    .replaceAll("&gt;", ">")
+    .replaceAll("&amp;", "&")
+    .replaceAll("&quot;", '"')
+    .replaceAll("&#39;", "'")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function normalizeHubbleText(text: string | undefined): string {
+  if (!text) {
+    return "";
+  }
+
+  const bytesLiteral = /^b(['"])(.*)\1$/s.exec(text);
+  return decodeEscapedBytes(bytesLiteral?.[2] || text);
+}
+
+function decodeEscapedBytes(text: string): string {
+  if (!text.includes("\\x")) {
+    return text;
+  }
+
+  const bytes: number[] = [];
+  for (let index = 0; index < text.length; index += 1) {
+    if (text[index] === "\\" && text[index + 1] === "x") {
+      const hex = text.slice(index + 2, index + 4);
+      if (/^[\da-f]{2}$/i.test(hex)) {
+        bytes.push(Number.parseInt(hex, 16));
+        index += 3;
+        continue;
+      }
+    }
+
+    bytes.push(...new TextEncoder().encode(text[index]));
+  }
+
+  return new TextDecoder().decode(Uint8Array.from(bytes));
 }
 
 export function detectImageMimeType(response: Response, imageUrl: string): string {

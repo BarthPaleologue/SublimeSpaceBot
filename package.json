@@ -10,6 +10,8 @@
     "dry-run:apod": "DRY_RUN=true node --env-file=.env src/post-apod.ts",
     "post:epic": "node --env-file=.env src/post-epic.ts",
     "dry-run:epic": "DRY_RUN=true node --env-file=.env src/post-epic.ts",
+    "post:hubble": "node --env-file=.env src/post-hubble.ts",
+    "dry-run:hubble": "DRY_RUN=true node --env-file=.env src/post-hubble.ts",
     "install:cron": "node scripts/install-cron.ts",
     "run:with-retries": "node scripts/run-with-retries.ts",
     "test": "node --test",

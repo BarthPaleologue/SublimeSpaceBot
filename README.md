@@ -12,6 +12,7 @@ This project is licensed under the AGPL-3.0-or-later License. See the [LICENSE.m
 
 - Posts NASA's Astronomy Picture of the Day to Bluesky
 - Posts NASA EPIC Earth imagery weekly
+- Posts ESA/Hubble archive imagery weekly
 - Automatically compresses images to meet Bluesky's size limits
 - Supports image APODs and video APODs with Bluesky link cards
 - Includes alt text plus a source and credit reply for each post
@@ -40,6 +41,18 @@ The `src/post-epic.ts` script:
 4. publishes the image with a short Earth-focused caption;
 5. replies to the main post with NASA EPIC/DSCOVR credit and the source image URL.
 
+## ESA/Hubble archive imagery
+
+The `src/post-hubble.ts` script:
+
+1. computes the ESA/Hubble Picture of the Week archive ID for the current week;
+2. fetches image metadata from `https://esahubble.org/images/{imageId}/api/json/`;
+3. downloads and compresses the image below Bluesky's 1 MB limit;
+4. publishes the image with a short Hubble-focused caption;
+5. replies to the main post with ESA/Hubble credit and the source URL.
+
+The weekly rotation starts at `potw1101a`, advances by one archive image per week, and wraps back to the start after `potw2552a`.
+
 ## Local setup
 
 Prerequisite: Node.js 24 or later.
@@ -61,6 +74,7 @@ Fill in `.env`, then test without posting:
 ```bash
 npm run dry-run:apod
 npm run dry-run:epic
+npm run dry-run:hubble
 ```
 
 Publish for real:
@@ -68,6 +82,7 @@ Publish for real:
 ```bash
 npm run post:apod
 npm run post:epic
+npm run post:hubble
 ```
 
 ## Local cron

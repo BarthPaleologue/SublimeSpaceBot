@@ -19,17 +19,25 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  HUBBLE_ARCHIVE_IMAGE_COUNT,
   type Apod,
   type EpicImage,
+  type HubbleImageDetail,
   buildAltText,
   buildEpicAltText,
   buildEpicImageUrl,
   buildEpicPostText,
   buildEpicSourceReplyText,
   buildExternalDescription,
+  buildHubbleAltText,
+  buildHubbleArchiveImageId,
+  buildHubbleImageUrl,
+  buildHubblePostText,
+  buildHubbleSourceReplyText,
   buildMainPostText,
   buildSourceReplyText,
   detectImageMimeType,
+  getWeeklyArchiveOffset,
   truncateText,
 } from "../src/post-utils.ts";
 
@@ -49,6 +57,22 @@ function createEpicImage(overrides: Partial<EpicImage> = {}): EpicImage {
     caption: "This image was taken by NASA's EPIC camera onboard the NOAA DSCOVR spacecraft",
     date: "2026-05-14 12:34:56",
     image: "epic_1b_20260514123456",
+    ...overrides,
+  };
+}
+
+function createHubbleDetail(overrides: Partial<HubbleImageDetail> = {}): HubbleImageDetail {
+  return {
+    Credit: "b'ESA/Hubble & NASA\\xe2\\x80\\x99s A. Example'",
+    Date: "2010-04-22T20:10:05",
+    Description: "b'<p>A deep view of a nebula &amp; surrounding stars.</p>'",
+    ID: "potw1001a",
+    ReferenceURL: "https://esahubble.org/images/potw2601a/",
+    Title: "b'Hubble captures a nebula'",
+    formats_url: {
+      large: "https://cdn.esahubble.org/archives/images/large/detail.jpg",
+      screen: "https://cdn.esahubble.org/archives/images/screen/detail.jpg",
+    },
     ...overrides,
   };
 }
@@ -151,6 +175,57 @@ test("buildEpicImageUrl rejects invalid dates", () => {
         }),
       ),
     /Invalid EPIC image date/,
+  );
+});
+
+test("buildHubblePostText includes the title and adds hashtags", () => {
+  assert.equal(
+    buildHubblePostText(createHubbleDetail()),
+    "Hubble captures a nebula\n\n#Hubble #Space",
+  );
+});
+
+test("buildHubbleSourceReplyText includes credit and source", () => {
+  assert.equal(
+    buildHubbleSourceReplyText(createHubbleDetail()),
+    "Credit: ESA/Hubble & NASA’s A. Example\nSource: https://esahubble.org/images/potw2601a/",
+  );
+});
+
+test("buildHubbleAltText decodes escaped bytes and strips HTML", () => {
+  assert.equal(
+    buildHubbleAltText(createHubbleDetail()),
+    "A deep view of a nebula & surrounding stars.",
+  );
+});
+
+test("buildHubbleImageUrl uses the largest detail image URL", () => {
+  assert.equal(
+    buildHubbleImageUrl(createHubbleDetail()),
+    "https://cdn.esahubble.org/archives/images/large/detail.jpg",
+  );
+});
+
+test("buildHubbleArchiveImageId maps weekly offsets to ESA/Hubble POTW IDs", () => {
+  assert.equal(buildHubbleArchiveImageId(0), "potw1101a");
+  assert.equal(buildHubbleArchiveImageId(51), "potw1152a");
+  assert.equal(buildHubbleArchiveImageId(52), "potw1201a");
+  assert.equal(buildHubbleArchiveImageId(HUBBLE_ARCHIVE_IMAGE_COUNT - 1), "potw2552a");
+  assert.equal(buildHubbleArchiveImageId(HUBBLE_ARCHIVE_IMAGE_COUNT), "potw1101a");
+});
+
+test("getWeeklyArchiveOffset counts elapsed whole weeks", () => {
+  assert.equal(
+    getWeeklyArchiveOffset(new Date("2026-05-15T00:00:00Z"), new Date("2026-05-15T00:00:00Z")),
+    0,
+  );
+  assert.equal(
+    getWeeklyArchiveOffset(new Date("2026-05-22T00:00:00Z"), new Date("2026-05-15T00:00:00Z")),
+    1,
+  );
+  assert.equal(
+    getWeeklyArchiveOffset(new Date("2026-05-14T00:00:00Z"), new Date("2026-05-15T00:00:00Z")),
+    0,
   );
 });
 

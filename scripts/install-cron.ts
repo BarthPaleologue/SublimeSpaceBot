@@ -35,6 +35,11 @@ const jobs = [
     schedule: "0 19 * * 3",
     command: `${shellQuote(npmPath)} run run:with-retries -- post:epic`,
   },
+  {
+    marker: `${CRON_MARKER_PREFIX}post-hubble`,
+    schedule: "0 19 * * 5",
+    command: `${shellQuote(npmPath)} run run:with-retries -- post:hubble`,
+  },
 ];
 
 function getExecutablePath(command: string): string {
