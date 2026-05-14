@@ -18,6 +18,7 @@
 
 const BLUESKY_TEXT_LIMIT = 300;
 const MAIN_POST_HASHTAGS = "#Astronomy #Space";
+const EPIC_POST_TEXT = "Today's Earth selfie from one million miles away\n\n#Earth #Space";
 
 export type Apod = {
   copyright?: string;
@@ -28,6 +29,12 @@ export type Apod = {
   thumbnail_url?: string;
   title: string;
   url: string;
+};
+
+export type EpicImage = {
+  caption: string;
+  date: string;
+  image: string;
 };
 
 export function requireEnv(name: string): string {
@@ -80,6 +87,35 @@ export function buildAltText(apod: Apod): string {
 
 export function buildExternalDescription(apod: Apod): string {
   return truncateText(apod.explanation);
+}
+
+export function buildEpicPostText(): string {
+  return EPIC_POST_TEXT;
+}
+
+export function buildEpicSourceReplyText(imageUrl: string): string {
+  return `Credit: NASA EPIC/DSCOVR\nSource: ${imageUrl}`;
+}
+
+export function buildEpicAltText(epicImage: EpicImage): string {
+  return truncateText(`${epicImage.caption}. Captured on ${epicImage.date}.`, 1000);
+}
+
+export function buildEpicImageUrl(epicImage: EpicImage): string {
+  const [date] = epicImage.date.split(" ");
+  if (!date) {
+    throw new Error(`Invalid EPIC image date: ${epicImage.date}`);
+  }
+
+  const [year, month, day] = date.split("-");
+  if (!year || !month || !day) {
+    throw new Error(`Invalid EPIC image date: ${epicImage.date}`);
+  }
+  if (!/^\d{4}$/.test(year) || !/^\d{2}$/.test(month) || !/^\d{2}$/.test(day)) {
+    throw new Error(`Invalid EPIC image date: ${epicImage.date}`);
+  }
+
+  return `https://epic.gsfc.nasa.gov/archive/natural/${year}/${month}/${day}/png/${epicImage.image}.png`;
 }
 
 export function detectImageMimeType(response: Response, imageUrl: string): string {

@@ -20,7 +20,12 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   type Apod,
+  type EpicImage,
   buildAltText,
+  buildEpicAltText,
+  buildEpicImageUrl,
+  buildEpicPostText,
+  buildEpicSourceReplyText,
   buildExternalDescription,
   buildMainPostText,
   buildSourceReplyText,
@@ -35,6 +40,15 @@ function createApod(overrides: Partial<Apod> = {}): Apod {
     media_type: "image",
     title: "A Test Nebula",
     url: "https://apod.nasa.gov/test",
+    ...overrides,
+  };
+}
+
+function createEpicImage(overrides: Partial<EpicImage> = {}): EpicImage {
+  return {
+    caption: "This image was taken by NASA's EPIC camera onboard the NOAA DSCOVR spacecraft",
+    date: "2026-05-14 12:34:56",
+    image: "epic_1b_20260514123456",
     ...overrides,
   };
 }
@@ -98,6 +112,46 @@ test("buildSourceReplyText preserves source URL when credit is long", () => {
   assert.ok(reply.length <= 300);
   assert.ok(reply.endsWith(`\nSource: ${source}`));
   assert.match(reply, /^Credit: A+\.\.\./);
+});
+
+test("buildEpicPostText includes Earth discovery hashtags", () => {
+  assert.equal(
+    buildEpicPostText(),
+    "Today's Earth selfie from one million miles away\n\n#Earth #Space",
+  );
+});
+
+test("buildEpicSourceReplyText includes NASA EPIC credit and source", () => {
+  assert.equal(
+    buildEpicSourceReplyText("https://example.com/earth.png"),
+    "Credit: NASA EPIC/DSCOVR\nSource: https://example.com/earth.png",
+  );
+});
+
+test("buildEpicAltText includes caption and capture date", () => {
+  const alt = buildEpicAltText(createEpicImage());
+
+  assert.match(alt, /^This image was taken/);
+  assert.match(alt, /Captured on 2026-05-14 12:34:56/);
+});
+
+test("buildEpicImageUrl builds the official EPIC archive URL", () => {
+  assert.equal(
+    buildEpicImageUrl(createEpicImage()),
+    "https://epic.gsfc.nasa.gov/archive/natural/2026/05/14/png/epic_1b_20260514123456.png",
+  );
+});
+
+test("buildEpicImageUrl rejects invalid dates", () => {
+  assert.throws(
+    () =>
+      buildEpicImageUrl(
+        createEpicImage({
+          date: "not-a-date",
+        }),
+      ),
+    /Invalid EPIC image date/,
+  );
 });
 
 test("buildAltText includes title and explanation", () => {

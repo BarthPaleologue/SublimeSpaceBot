@@ -20,37 +20,37 @@ import { type Agent } from "@atproto/api";
 import { createAgent, createPostRecord, publishReply, uploadImageBlob } from "./bluesky.ts";
 import { fetchJson } from "./http.ts";
 import {
-  type Apod,
-  buildAltText,
-  buildExternalDescription,
-  buildMainPostText,
-  buildSourceReplyText,
+  type EpicImage,
+  buildEpicAltText,
+  buildEpicImageUrl,
+  buildEpicPostText,
+  buildEpicSourceReplyText,
 } from "./post-utils.ts";
 
-async function fetchApod(): Promise<Apod> {
+async function fetchLatestEpicImage(): Promise<EpicImage> {
   const apiKey = process.env.NASA_API_KEY || "DEMO_KEY";
-  const url = new URL("https://api.nasa.gov/planetary/apod");
+  const url = new URL("https://api.nasa.gov/EPIC/api/natural");
   url.searchParams.set("api_key", apiKey);
-  url.searchParams.set("thumbs", "true");
 
-  return fetchJson<Apod>(url);
+  const images = await fetchJson<EpicImage[]>(url);
+  const latestImage = images.at(-1);
+  if (!latestImage) {
+    throw new Error("NASA EPIC did not return any natural color images");
+  }
+
+  return latestImage;
 }
 
-async function publishTextPost(agent: Agent, apod: Apod) {
-  return agent.post(await createPostRecord(agent, buildMainPostText(apod)));
-}
-
-async function publishImagePost(agent: Agent, apod: Apod) {
-  const imageUrl = apod.hdurl || apod.url;
+async function publishEpicPost(agent: Agent, epicImage: EpicImage, imageUrl: string) {
   const upload = await uploadImageBlob(agent, imageUrl);
 
   return agent.post({
-    ...(await createPostRecord(agent, buildMainPostText(apod))),
+    ...(await createPostRecord(agent, buildEpicPostText())),
     embed: {
       $type: "app.bsky.embed.images",
       images: [
         {
-          alt: buildAltText(apod),
+          alt: buildEpicAltText(epicImage),
           image: upload.data.blob,
         },
       ],
@@ -58,37 +58,20 @@ async function publishImagePost(agent: Agent, apod: Apod) {
   });
 }
 
-async function publishVideoPost(agent: Agent, apod: Apod) {
-  const thumb = apod.thumbnail_url ? await uploadImageBlob(agent, apod.thumbnail_url) : null;
-
-  return agent.post({
-    ...(await createPostRecord(agent, buildMainPostText(apod))),
-    embed: {
-      $type: "app.bsky.embed.external",
-      external: {
-        uri: apod.url,
-        title: apod.title,
-        description: buildExternalDescription(apod),
-        ...(thumb ? { thumb: thumb.data.blob } : {}),
-      },
-    },
-  });
-}
-
 async function main(): Promise<void> {
   const dryRun = process.env.DRY_RUN === "true";
-  const apod = await fetchApod();
+  const epicImage = await fetchLatestEpicImage();
+  const imageUrl = buildEpicImageUrl(epicImage);
 
   if (dryRun) {
     console.log(
       JSON.stringify(
         {
           dryRun: true,
-          mediaType: apod.media_type,
-          mainPostText: buildMainPostText(apod),
-          sourceReplyText: buildSourceReplyText(apod),
-          imageUrl: apod.media_type === "image" ? apod.hdurl || apod.url : null,
-          videoThumbnailUrl: apod.media_type === "video" ? apod.thumbnail_url || null : null,
+          date: epicImage.date,
+          mainPostText: buildEpicPostText(),
+          sourceReplyText: buildEpicSourceReplyText(imageUrl),
+          imageUrl,
         },
         null,
         2,
@@ -99,13 +82,8 @@ async function main(): Promise<void> {
 
   const agent = await createAgent();
 
-  const result =
-    apod.media_type === "image"
-      ? await publishImagePost(agent, apod)
-      : apod.media_type === "video"
-        ? await publishVideoPost(agent, apod)
-        : await publishTextPost(agent, apod);
-  const reply = await publishReply(agent, buildSourceReplyText(apod), result);
+  const result = await publishEpicPost(agent, epicImage, imageUrl);
+  const reply = await publishReply(agent, buildEpicSourceReplyText(imageUrl), result);
 
   console.log(
     JSON.stringify(
@@ -115,8 +93,7 @@ async function main(): Promise<void> {
         cid: result.cid,
         sourceReplyUri: reply.uri,
         sourceReplyCid: reply.cid,
-        title: apod.title,
-        date: apod.date,
+        date: epicImage.date,
       },
       null,
       2,

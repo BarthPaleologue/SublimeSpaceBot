@@ -11,6 +11,7 @@ This project is licensed under the AGPL-3.0-or-later License. See the [LICENSE.m
 ## Features
 
 - Posts NASA's Astronomy Picture of the Day to Bluesky
+- Posts NASA EPIC Earth imagery weekly
 - Automatically compresses images to meet Bluesky's size limits
 - Supports image APODs and video APODs with Bluesky link cards
 - Includes alt text plus a source and credit reply for each post
@@ -28,6 +29,16 @@ The `src/post-apod.ts` script:
 6. replies to the main post with the APOD source and credit.
 
 If the daily APOD is a video, the bot does not re-upload the video file. It links to the original video source and uses NASA's thumbnail when available.
+
+## NASA EPIC Earth imagery
+
+The `src/post-epic.ts` script:
+
+1. fetches the latest natural color Earth images from `https://api.nasa.gov/EPIC/api/natural`;
+2. picks the latest available image;
+3. downloads and compresses the image below Bluesky's 1 MB limit;
+4. publishes the image with a short Earth-focused caption;
+5. replies to the main post with NASA EPIC/DSCOVR credit and the source image URL.
 
 ## Local setup
 
@@ -49,24 +60,24 @@ Fill in `.env`, then test without posting:
 
 ```bash
 npm run dry-run:apod
+npm run dry-run:epic
 ```
 
 Publish for real:
 
 ```bash
 npm run post:apod
+npm run post:epic
 ```
 
 ## Local cron
 
-Example for posting every day at 17:00 in the machine's local timezone:
-
-```cron
-0 17 * * * cd /path/to/sublime-space-bot && npm run post:apod >> bot.log 2>&1
-```
-
-You can also install or update that cron entry without opening an editor. Run this from the repository root:
+Install or update all cron jobs from the repository root:
 
 ```bash
-(crontab -l 2>/dev/null | grep -v "sublime-space-bot:post-apod"; echo "0 17 * * * cd $(pwd) && npm run post:apod >> bot.log 2>&1 # sublime-space-bot:post-apod") | crontab -
+npm run install:cron
 ```
+
+This preserves unrelated cron entries and replaces existing Sublime Space Bot entries.
+
+All jobs run from the repository directory and append logs to `bot.log`.
