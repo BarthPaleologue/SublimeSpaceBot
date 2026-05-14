@@ -54,7 +54,8 @@ async function runWithRetries(command: string): Promise<void> {
 
 async function runNpmScript(command: string): Promise<number> {
   return new Promise((resolve) => {
-    const child = spawn("npm", ["run", command], {
+    const npm = getNpmInvocation();
+    const child = spawn(npm.command, [...npm.args, "run", command], {
       stdio: "inherit",
     });
 
@@ -67,6 +68,19 @@ async function runNpmScript(command: string): Promise<number> {
       resolve(code ?? 1);
     });
   });
+}
+
+function getNpmInvocation(): { args: string[]; command: string } {
+  const npmExecPath = process.env.npm_execpath;
+  if (!npmExecPath) {
+    return { args: [], command: "npm" };
+  }
+
+  if (npmExecPath.endsWith(".js")) {
+    return { args: [npmExecPath], command: process.execPath };
+  }
+
+  return { args: [], command: npmExecPath };
 }
 
 function log(command: string, message: string): void {

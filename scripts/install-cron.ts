@@ -23,18 +23,31 @@ import { join } from "node:path";
 const CRON_MARKER_PREFIX = "sublime-space-bot:";
 
 const repoRoot = realpathSync(join(import.meta.dirname, ".."));
+const npmPath = getExecutablePath("npm");
 const jobs = [
   {
     marker: `${CRON_MARKER_PREFIX}post-apod`,
     schedule: "0 17 * * *",
-    command: "npm run run:with-retries -- post:apod",
+    command: `${shellQuote(npmPath)} run run:with-retries -- post:apod`,
   },
   {
     marker: `${CRON_MARKER_PREFIX}post-epic`,
     schedule: "0 19 * * 3",
-    command: "npm run run:with-retries -- post:epic",
+    command: `${shellQuote(npmPath)} run run:with-retries -- post:epic`,
   },
 ];
+
+function getExecutablePath(command: string): string {
+  const result = spawnSync("which", [command], {
+    encoding: "utf8",
+  });
+
+  if (result.status !== 0) {
+    throw new Error(result.stderr || `Failed to find ${command} executable`);
+  }
+
+  return result.stdout.trim();
+}
 
 function readCurrentCrontab(): string[] {
   const result = spawnSync("crontab", ["-l"], {
@@ -54,7 +67,8 @@ function readCurrentCrontab(): string[] {
 
 const existingLines = readCurrentCrontab().filter((line) => !line.includes(CRON_MARKER_PREFIX));
 const botLines = jobs.map(
-  (job) => `${job.schedule} cd ${repoRoot} && ${job.command} >> bot.log 2>&1 # ${job.marker}`,
+  (job) =>
+    `${job.schedule} cd ${shellQuote(repoRoot)} && ${job.command} >> bot.log 2>&1 # ${job.marker}`,
 );
 const nextCrontab = [...existingLines, ...botLines].join("\n") + "\n";
 
@@ -65,4 +79,8 @@ execFileSync("crontab", ["-"], {
 console.log("Installed cron jobs:");
 for (const line of botLines) {
   console.log(line);
+}
+
+function shellQuote(value: string): string {
+  return `'${value.replaceAll("'", "'\\''")}'`;
 }
