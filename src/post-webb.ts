@@ -30,7 +30,6 @@ import {
   hubbleImageDetailSchema,
   webbPotmImagesSchema,
 } from "./post-utils.ts";
-import { readBotState } from "./state.ts";
 
 const WEBB_POTM_URL = "https://esawebb.org/images/potm/json/";
 
@@ -78,29 +77,12 @@ async function main(): Promise<void> {
     throw new Error("ESA/Webb POTM image ID unexpectedly disappeared");
   }
 
-  const state = await readBotState();
-  if (state.webbLastPostedImageId === imageId) {
-    console.log(
-      JSON.stringify(
-        {
-          imageId,
-          skipped: true,
-          reason: "duplicate",
-        },
-        null,
-        2,
-      ),
-    );
-    return;
-  }
-
   if (dryRun) {
     console.log(
       JSON.stringify(
         {
           dryRun: true,
           imageId,
-          lastPostedImageId: state.webbLastPostedImageId ?? null,
           mainPostText: buildWebbPostText(input.detail),
           releaseDate: input.detail.Date ?? input.listing.release_date,
           sourceReplyText: buildWebbSourceReplyText(input.detail),
