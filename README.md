@@ -79,12 +79,13 @@ The duplicate guard is stored in `.bot-state.json`, which is ignored by git.
 
 ## Local setup
 
-Prerequisite: Node.js 24 or later.
+Prerequisite: Node.js 24 or later with Corepack enabled.
 
 On your server or local machine, clone this repo and run:
 
 ```bash
-npm install
+corepack enable
+pnpm install
 cp .env.example .env
 ```
 
@@ -96,21 +97,21 @@ Then create:
 Fill in `.env`, then test without posting:
 
 ```bash
-npm run dry-run:apod
-npm run dry-run:epic
-npm run dry-run:hubble
-npm run dry-run:sdo
-npm run dry-run:webb
+pnpm dry-run:apod
+pnpm dry-run:epic
+pnpm dry-run:hubble
+pnpm dry-run:sdo
+pnpm dry-run:webb
 ```
 
 Publish for real:
 
 ```bash
-npm run post:apod
-npm run post:epic
-npm run post:hubble
-npm run post:sdo
-npm run post:webb
+pnpm post:apod
+pnpm post:epic
+pnpm post:hubble
+pnpm post:sdo
+pnpm post:webb
 ```
 
 ## Local cron
@@ -118,7 +119,7 @@ npm run post:webb
 Install or update all cron jobs from the repository root:
 
 ```bash
-npm run install:cron
+pnpm install:cron
 ```
 
 This preserves unrelated cron entries and replaces existing Sublime Space Bot entries.

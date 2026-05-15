@@ -31,7 +31,7 @@ const ALLOWED_COMMANDS = new Set([
 
 const command = process.argv[2];
 if (!command || !ALLOWED_COMMANDS.has(command)) {
-  console.error(`Usage: npm run run:with-retries -- ${[...ALLOWED_COMMANDS].join("|")}`);
+  console.error(`Usage: pnpm run:with-retries -- ${[...ALLOWED_COMMANDS].join("|")}`);
   process.exitCode = 2;
 } else {
   await runWithRetries(command);
@@ -40,7 +40,7 @@ if (!command || !ALLOWED_COMMANDS.has(command)) {
 async function runWithRetries(command: string): Promise<void> {
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
     log(command, `attempt ${attempt}/${MAX_ATTEMPTS} started`);
-    const exitCode = await runNpmScript(command);
+    const exitCode = await runPackageManagerScript(command);
 
     if (exitCode === 0) {
       log(command, `attempt ${attempt}/${MAX_ATTEMPTS} succeeded`);
@@ -58,10 +58,10 @@ async function runWithRetries(command: string): Promise<void> {
   process.exitCode = 1;
 }
 
-async function runNpmScript(command: string): Promise<number> {
+async function runPackageManagerScript(command: string): Promise<number> {
   return new Promise((resolve) => {
-    const npm = getNpmInvocation();
-    const child = spawn(npm.command, [...npm.args, "run", command], {
+    const packageManager = getPackageManagerInvocation();
+    const child = spawn(packageManager.command, [...packageManager.args, "run", command], {
       stdio: "inherit",
     });
 
@@ -76,17 +76,17 @@ async function runNpmScript(command: string): Promise<number> {
   });
 }
 
-function getNpmInvocation(): { args: string[]; command: string } {
-  const npmExecPath = process.env.npm_execpath;
-  if (!npmExecPath) {
-    return { args: [], command: "npm" };
+function getPackageManagerInvocation(): { args: string[]; command: string } {
+  const packageManagerExecPath = process.env.npm_execpath;
+  if (!packageManagerExecPath) {
+    return { args: ["pnpm"], command: "corepack" };
   }
 
-  if (npmExecPath.endsWith(".js")) {
-    return { args: [npmExecPath], command: process.execPath };
+  if (packageManagerExecPath.endsWith(".js") || packageManagerExecPath.endsWith(".cjs")) {
+    return { args: [packageManagerExecPath], command: process.execPath };
   }
 
-  return { args: [], command: npmExecPath };
+  return { args: [], command: packageManagerExecPath };
 }
 
 function log(command: string, message: string): void {

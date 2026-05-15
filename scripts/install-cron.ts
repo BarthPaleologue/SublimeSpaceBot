@@ -24,33 +24,33 @@ const CRON_MARKER_PREFIX = "sublime-space-bot:";
 
 const repoRoot = realpathSync(join(import.meta.dirname, ".."));
 const nodePath = getExecutablePath("node");
-const npmPath = getExecutablePath("npm");
+const corepackPath = getExecutablePath("corepack");
 const cronPath = `${dirname(nodePath)}:/usr/local/bin:/usr/bin:/bin`;
 const jobs = [
   {
     marker: `${CRON_MARKER_PREFIX}post-apod`,
     schedule: "0 17 * * *",
-    command: `${shellQuote(npmPath)} run run:with-retries -- post:apod`,
+    command: `${shellQuote(corepackPath)} pnpm run:with-retries -- post:apod`,
   },
   {
     marker: `${CRON_MARKER_PREFIX}post-epic`,
     schedule: "0 19 * * 3",
-    command: `${shellQuote(npmPath)} run run:with-retries -- post:epic`,
+    command: `${shellQuote(corepackPath)} pnpm run:with-retries -- post:epic`,
   },
   {
     marker: `${CRON_MARKER_PREFIX}post-hubble`,
     schedule: "0 19 * * 5",
-    command: `${shellQuote(npmPath)} run run:with-retries -- post:hubble`,
+    command: `${shellQuote(corepackPath)} pnpm run:with-retries -- post:hubble`,
   },
   {
     marker: `${CRON_MARKER_PREFIX}post-webb`,
     schedule: "0 18 * * *",
-    command: `${shellQuote(npmPath)} run run:with-retries -- post:webb`,
+    command: `${shellQuote(corepackPath)} pnpm run:with-retries -- post:webb`,
   },
   {
     marker: `${CRON_MARKER_PREFIX}post-sdo`,
     schedule: "30 18 * * 1",
-    command: `${shellQuote(npmPath)} run run:with-retries -- post:sdo`,
+    command: `${shellQuote(corepackPath)} pnpm run:with-retries -- post:sdo`,
   },
 ];
 
