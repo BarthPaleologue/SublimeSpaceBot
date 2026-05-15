@@ -182,7 +182,7 @@ export function buildHubblePostText(detail: HubbleImageDetail): string {
 export function buildHubbleSourceReplyText(detail: HubbleImageDetail): string {
   const credit = normalizeImageDetailText(detail.Credit) || "ESA/Hubble & NASA";
   const source = detail.ReferenceURL ?? `https://esahubble.org/images/${detail.ID}/`;
-  return `Credit: ${credit}\nSource: ${source}`;
+  return buildCreditSourceReply(credit, source);
 }
 
 export function buildHubbleAltText(detail: HubbleImageDetail): string {
@@ -202,7 +202,7 @@ export function buildWebbPostText(detail: HubbleImageDetail): string {
 export function buildWebbSourceReplyText(detail: HubbleImageDetail): string {
   const credit = normalizeImageDetailText(detail.Credit) || "ESA/Webb, NASA & CSA";
   const source = detail.ReferenceURL ?? `https://esawebb.org/images/${detail.ID}/`;
-  return `Credit: ${credit}\nSource: ${source}`;
+  return buildCreditSourceReply(credit, source);
 }
 
 export function buildWebbAltText(detail: HubbleImageDetail): string {
@@ -232,6 +232,20 @@ export function getWeeklyArchiveOffset(currentDate: Date, startDate: Date): numb
 
 function buildHubbleImageId(year: number, week: number): string {
   return `potw${String(year).slice(-2)}${String(week).padStart(2, "0")}a`;
+}
+
+function buildCreditSourceReply(credit: string, source: string): string {
+  const creditPrefix = "Credit: ";
+  const sourceLine = `Source: ${source}`;
+  const separator = "\n";
+  const maxCreditLength =
+    BLUESKY_TEXT_LIMIT - creditPrefix.length - separator.length - sourceLine.length;
+
+  if (maxCreditLength <= 0) {
+    return truncateText(sourceLine);
+  }
+
+  return `${creditPrefix}${truncateText(credit, maxCreditLength)}${separator}${sourceLine}`;
 }
 
 function stripHtml(html: string): string {

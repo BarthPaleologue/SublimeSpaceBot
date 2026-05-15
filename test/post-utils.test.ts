@@ -227,6 +227,20 @@ test("buildHubbleSourceReplyText includes credit and source", () => {
   );
 });
 
+test("buildHubbleSourceReplyText preserves source URL when credit is long", () => {
+  const source = "https://esahubble.org/images/potw2601a/";
+  const reply = buildHubbleSourceReplyText(
+    createHubbleDetail({
+      Credit: `b'${"A".repeat(500)}'`,
+      ReferenceURL: source,
+    }),
+  );
+
+  assert.ok(reply.length <= 300);
+  assert.ok(reply.endsWith(`\nSource: ${source}`));
+  assert.match(reply, /^Credit: A+\.\.\./);
+});
+
 test("buildHubbleAltText decodes escaped bytes and strips HTML", () => {
   assert.equal(
     buildHubbleAltText(createHubbleDetail()),
@@ -261,6 +275,20 @@ test("buildWebbSourceReplyText includes decoded credit and source", () => {
     buildWebbSourceReplyText(createWebbDetail()),
     "Credit: ESA/Webb, NASA & CSA, G. Duchêne\nSource: https://esawebb.org/images/potm2603a/",
   );
+});
+
+test("buildWebbSourceReplyText preserves source URL when credit is long", () => {
+  const source = "https://esawebb.org/images/potm2603a/";
+  const reply = buildWebbSourceReplyText(
+    createWebbDetail({
+      Credit: `b'${"A".repeat(500)}'`,
+      ReferenceURL: source,
+    }),
+  );
+
+  assert.ok(reply.length <= 300);
+  assert.ok(reply.endsWith(`\nSource: ${source}`));
+  assert.match(reply, /^Credit: A+\.\.\./);
 });
 
 test("buildWebbAltText decodes escaped bytes and strips HTML", () => {
