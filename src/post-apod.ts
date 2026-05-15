@@ -17,8 +17,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { type Agent } from "@atproto/api";
-import { createAgent, createPostRecord, publishReply, uploadImageBlob } from "./bluesky.ts";
+import { createAgent, createPostRecord, uploadImageBlob } from "./bluesky.ts";
 import { fetchJson } from "./http.ts";
+import { publishOnce } from "./publish-once.ts";
 import {
   type Apod,
   apodSchema,
@@ -101,22 +102,28 @@ async function main(): Promise<void> {
 
   const agent = await createAgent();
 
-  const result =
-    apod.media_type === "image"
-      ? await publishImagePost(agent, apod)
-      : apod.media_type === "video"
-        ? await publishVideoPost(agent, apod)
-        : await publishTextPost(agent, apod);
-  const reply = await publishReply(agent, buildSourceReplyText(apod), result);
+  const publication = await publishOnce({
+    agent,
+    itemKey: `apod:${apod.date}`,
+    publishMainPost: () =>
+      apod.media_type === "image"
+        ? publishImagePost(agent, apod)
+        : apod.media_type === "video"
+          ? publishVideoPost(agent, apod)
+          : publishTextPost(agent, apod),
+    source: "apod",
+    sourceReplyText: buildSourceReplyText(apod),
+  });
 
   console.log(
     JSON.stringify(
       {
-        posted: true,
-        uri: result.uri,
-        cid: result.cid,
-        sourceReplyUri: reply.uri,
-        sourceReplyCid: reply.cid,
+        posted: !publication.skipped,
+        skipped: publication.skipped,
+        uri: publication.mainPost?.uri,
+        cid: publication.mainPost?.cid,
+        sourceReplyUri: publication.sourceReply?.uri,
+        sourceReplyCid: publication.sourceReply?.cid,
         title: apod.title,
         date: apod.date,
       },

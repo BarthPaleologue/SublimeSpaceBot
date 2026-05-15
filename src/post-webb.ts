@@ -17,8 +17,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { type Agent } from "@atproto/api";
-import { createAgent, createPostRecord, publishReply, uploadImageBlob } from "./bluesky.ts";
+import { createAgent, createPostRecord, uploadImageBlob } from "./bluesky.ts";
 import { fetchJson } from "./http.ts";
+import { publishOnce } from "./publish-once.ts";
 import {
   type HubbleImageDetail,
   type WebbPotmImage,
@@ -29,7 +30,7 @@ import {
   hubbleImageDetailSchema,
   webbPotmImagesSchema,
 } from "./post-utils.ts";
-import { readBotState, writeBotState } from "./state.ts";
+import { readBotState } from "./state.ts";
 
 const WEBB_POTM_URL = "https://esawebb.org/images/potm/json/";
 
@@ -115,22 +116,24 @@ async function main(): Promise<void> {
 
   const agent = await createAgent();
 
-  const result = await publishWebbPost(agent, input);
-  const reply = await publishReply(agent, buildWebbSourceReplyText(input.detail), result);
-  await writeBotState({
-    ...state,
-    webbLastPostedImageId: imageId,
+  const publication = await publishOnce({
+    agent,
+    itemKey: `webb:${imageId}`,
+    publishMainPost: () => publishWebbPost(agent, input),
+    source: "webb",
+    sourceReplyText: buildWebbSourceReplyText(input.detail),
   });
 
   console.log(
     JSON.stringify(
       {
         imageId,
-        posted: true,
-        uri: result.uri,
-        cid: result.cid,
-        sourceReplyUri: reply.uri,
-        sourceReplyCid: reply.cid,
+        posted: !publication.skipped,
+        skipped: publication.skipped,
+        uri: publication.mainPost?.uri,
+        cid: publication.mainPost?.cid,
+        sourceReplyUri: publication.sourceReply?.uri,
+        sourceReplyCid: publication.sourceReply?.cid,
         releaseDate: input.detail.Date ?? input.listing.release_date,
       },
       null,

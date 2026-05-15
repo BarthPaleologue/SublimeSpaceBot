@@ -17,8 +17,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { type Agent } from "@atproto/api";
-import { createAgent, createPostRecord, publishReply, uploadImageBlob } from "./bluesky.ts";
+import { createAgent, createPostRecord, uploadImageBlob } from "./bluesky.ts";
 import { fetchJson } from "./http.ts";
+import { publishOnce } from "./publish-once.ts";
 import {
   type HubbleImageDetail,
   buildHubbleAltText,
@@ -92,17 +93,23 @@ async function main(): Promise<void> {
 
   const agent = await createAgent();
 
-  const result = await publishHubblePost(agent, input);
-  const reply = await publishReply(agent, buildHubbleSourceReplyText(input.detail), result);
+  const publication = await publishOnce({
+    agent,
+    itemKey: `hubble:${input.imageId}`,
+    publishMainPost: () => publishHubblePost(agent, input),
+    source: "hubble",
+    sourceReplyText: buildHubbleSourceReplyText(input.detail),
+  });
 
   console.log(
     JSON.stringify(
       {
-        posted: true,
-        uri: result.uri,
-        cid: result.cid,
-        sourceReplyUri: reply.uri,
-        sourceReplyCid: reply.cid,
+        posted: !publication.skipped,
+        skipped: publication.skipped,
+        uri: publication.mainPost?.uri,
+        cid: publication.mainPost?.cid,
+        sourceReplyUri: publication.sourceReply?.uri,
+        sourceReplyCid: publication.sourceReply?.cid,
         archiveOffset: input.archiveOffset,
         imageId: input.imageId,
         releaseDate: input.detail.Date,

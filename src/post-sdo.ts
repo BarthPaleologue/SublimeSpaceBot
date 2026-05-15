@@ -17,7 +17,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { type Agent } from "@atproto/api";
-import { createAgent, createPostRecord, publishReply, uploadImageBlob } from "./bluesky.ts";
+import { createAgent, createPostRecord, uploadImageBlob } from "./bluesky.ts";
+import { publishOnce } from "./publish-once.ts";
 import { buildSdoPostText, buildSdoSourceReplyText } from "./post-utils.ts";
 
 const SDO_IMAGES = [
@@ -80,17 +81,23 @@ async function main(): Promise<void> {
 
   const agent = await createAgent();
 
-  const result = await publishSdoPost(agent);
-  const reply = await publishReply(agent, buildSdoSourceReplyText(), result);
+  const publication = await publishOnce({
+    agent,
+    itemKey: `sdo:${new Date().toISOString().slice(0, 10)}`,
+    publishMainPost: () => publishSdoPost(agent),
+    source: "sdo",
+    sourceReplyText: buildSdoSourceReplyText(),
+  });
 
   console.log(
     JSON.stringify(
       {
-        posted: true,
-        uri: result.uri,
-        cid: result.cid,
-        sourceReplyUri: reply.uri,
-        sourceReplyCid: reply.cid,
+        posted: !publication.skipped,
+        skipped: publication.skipped,
+        uri: publication.mainPost?.uri,
+        cid: publication.mainPost?.cid,
+        sourceReplyUri: publication.sourceReply?.uri,
+        sourceReplyCid: publication.sourceReply?.cid,
         imageUrls: SDO_IMAGES.map((image) => image.url),
       },
       null,

@@ -19,16 +19,30 @@
 import { readFile, rename, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { z } from "zod";
+import { type PostRef } from "./bluesky.ts";
 
 const STATE_PATH = join(import.meta.dirname, "..", ".bot-state.json");
 
+const postRefSchema = z.object({
+  cid: z.string(),
+  uri: z.string(),
+});
+
+const publishedPostStateSchema = z.object({
+  itemKey: z.string(),
+  mainPost: postRefSchema.optional(),
+  sourceReply: postRefSchema.optional(),
+});
+
 const botStateSchema = z
   .object({
+    posts: z.record(z.string(), publishedPostStateSchema).optional(),
     webbLastPostedImageId: z.string().optional(),
   })
   .passthrough();
 
 export type BotState = z.infer<typeof botStateSchema>;
+export type PublishedPostState = z.infer<typeof publishedPostStateSchema>;
 
 export async function readBotState(): Promise<BotState> {
   try {
@@ -53,6 +67,39 @@ export async function writeBotState(state: BotState): Promise<void> {
   const temporaryPath = `${STATE_PATH}.${process.pid}.tmp`;
   await writeFile(temporaryPath, `${JSON.stringify(state, null, 2)}\n`);
   await rename(temporaryPath, STATE_PATH);
+}
+
+export function getPublishedPostState(
+  state: BotState,
+  source: string,
+  itemKey: string,
+): PublishedPostState | undefined {
+  const published = state.posts?.[source];
+  return published?.itemKey === itemKey ? published : undefined;
+}
+
+export async function savePublishedPostState(
+  state: BotState,
+  source: string,
+  published: PublishedPostState,
+): Promise<BotState> {
+  const nextState = {
+    ...state,
+    posts: {
+      ...state.posts,
+      [source]: published,
+    },
+  };
+
+  await writeBotState(nextState);
+  return nextState;
+}
+
+export function toPostRef(post: PostRef): PostRef {
+  return {
+    cid: post.cid,
+    uri: post.uri,
+  };
 }
 
 function isFileNotFoundError(error: unknown): boolean {

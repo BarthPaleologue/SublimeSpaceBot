@@ -17,8 +17,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { type Agent } from "@atproto/api";
-import { createAgent, createPostRecord, publishReply, uploadImageBlob } from "./bluesky.ts";
+import { createAgent, createPostRecord, uploadImageBlob } from "./bluesky.ts";
 import { fetchJson } from "./http.ts";
+import { publishOnce } from "./publish-once.ts";
 import {
   type EpicImage,
   buildEpicAltText,
@@ -84,17 +85,23 @@ async function main(): Promise<void> {
 
   const agent = await createAgent();
 
-  const result = await publishEpicPost(agent, epicImage, imageUrl);
-  const reply = await publishReply(agent, buildEpicSourceReplyText(imageUrl), result);
+  const publication = await publishOnce({
+    agent,
+    itemKey: `epic:${epicImage.image}`,
+    publishMainPost: () => publishEpicPost(agent, epicImage, imageUrl),
+    source: "epic",
+    sourceReplyText: buildEpicSourceReplyText(imageUrl),
+  });
 
   console.log(
     JSON.stringify(
       {
-        posted: true,
-        uri: result.uri,
-        cid: result.cid,
-        sourceReplyUri: reply.uri,
-        sourceReplyCid: reply.cid,
+        posted: !publication.skipped,
+        skipped: publication.skipped,
+        uri: publication.mainPost?.uri,
+        cid: publication.mainPost?.cid,
+        sourceReplyUri: publication.sourceReply?.uri,
+        sourceReplyCid: publication.sourceReply?.cid,
         date: epicImage.date,
       },
       null,
