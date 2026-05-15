@@ -18,6 +18,7 @@
 
 import { Agent, CredentialSession, RichText } from "@atproto/api";
 import sharp from "sharp";
+import { FETCH_TIMEOUT_MS } from "./http.ts";
 import { detectImageMimeType, requireEnv } from "./post-utils.ts";
 
 const MAX_BSKY_IMAGE_BYTES = 1_000_000;
@@ -85,7 +86,9 @@ export async function uploadImageBlob(agent: Agent, imageUrl: string) {
 }
 
 async function downloadImage(imageUrl: string): Promise<DownloadedImage> {
-  const response = await fetch(imageUrl);
+  const response = await fetch(imageUrl, {
+    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+  });
   if (!response.ok) {
     throw new Error(`GET ${imageUrl} failed: ${response.status} ${response.statusText}`);
   }

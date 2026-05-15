@@ -18,8 +18,12 @@
 
 import { z } from "zod";
 
+export const FETCH_TIMEOUT_MS = 45_000;
+
 export async function fetchJson<T>(url: URL, schema: z.ZodType<T>): Promise<T> {
-  const response = await fetch(url);
+  const response = await fetch(url, {
+    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+  });
   if (!response.ok) {
     throw new Error(`GET ${url.toString()} failed: ${response.status} ${response.statusText}`);
   }
