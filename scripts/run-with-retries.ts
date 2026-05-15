@@ -21,7 +21,7 @@ import { setTimeout } from "node:timers/promises";
 
 const MAX_ATTEMPTS = 3;
 const RETRY_DELAY_MS = 60 * 60 * 1000;
-const ALLOWED_COMMANDS = new Set(["post:apod", "post:epic", "post:hubble"]);
+const ALLOWED_COMMANDS = new Set(["post:apod", "post:epic", "post:hubble", "post:webb"]);
 
 const command = process.argv[2];
 if (!command || !ALLOWED_COMMANDS.has(command)) {

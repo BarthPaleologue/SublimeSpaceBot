@@ -36,6 +36,10 @@ import {
   buildHubbleSourceReplyText,
   buildMainPostText,
   buildSourceReplyText,
+  buildWebbAltText,
+  buildWebbImageUrl,
+  buildWebbPostText,
+  buildWebbSourceReplyText,
   detectImageMimeType,
   getWeeklyArchiveOffset,
   truncateText,
@@ -75,6 +79,21 @@ function createHubbleDetail(overrides: Partial<HubbleImageDetail> = {}): HubbleI
     },
     ...overrides,
   };
+}
+
+function createWebbDetail(overrides: Partial<HubbleImageDetail> = {}): HubbleImageDetail {
+  return createHubbleDetail({
+    Credit: "b'ESA/Webb, NASA & CSA, G. Duch\\xc3\\xaane'",
+    Description: "b'<p>A Webb view of planet-forming discs &amp; nearby stars.</p>'",
+    ID: "potm2603a",
+    ReferenceURL: "https://esawebb.org/images/potm2603a/",
+    Title: "b'A pair of planet-forming discs'",
+    formats_url: {
+      large: "https://cdn.esawebb.org/archives/images/large/potm2603a.jpg",
+      screen: "https://cdn.esawebb.org/archives/images/screen/potm2603a.jpg",
+    },
+    ...overrides,
+  });
 }
 
 test("truncateText keeps short text unchanged", () => {
@@ -212,6 +231,34 @@ test("buildHubbleArchiveImageId maps weekly offsets to ESA/Hubble POTW IDs", () 
   assert.equal(buildHubbleArchiveImageId(52), "potw1201a");
   assert.equal(buildHubbleArchiveImageId(HUBBLE_ARCHIVE_IMAGE_COUNT - 1), "potw2552a");
   assert.equal(buildHubbleArchiveImageId(HUBBLE_ARCHIVE_IMAGE_COUNT), "potw1101a");
+});
+
+test("buildWebbPostText includes the title and adds hashtags", () => {
+  assert.equal(
+    buildWebbPostText(createWebbDetail()),
+    "A pair of planet-forming discs\n\n#JWST #Space",
+  );
+});
+
+test("buildWebbSourceReplyText includes decoded credit and source", () => {
+  assert.equal(
+    buildWebbSourceReplyText(createWebbDetail()),
+    "Credit: ESA/Webb, NASA & CSA, G. Duchêne\nSource: https://esawebb.org/images/potm2603a/",
+  );
+});
+
+test("buildWebbAltText decodes escaped bytes and strips HTML", () => {
+  assert.equal(
+    buildWebbAltText(createWebbDetail()),
+    "A Webb view of planet-forming discs & nearby stars.",
+  );
+});
+
+test("buildWebbImageUrl uses the largest detail image URL", () => {
+  assert.equal(
+    buildWebbImageUrl(createWebbDetail()),
+    "https://cdn.esawebb.org/archives/images/large/potm2603a.jpg",
+  );
 });
 
 test("getWeeklyArchiveOffset counts elapsed whole weeks", () => {

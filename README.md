@@ -13,6 +13,7 @@ This project is licensed under the AGPL-3.0-or-later License. See the [LICENSE.m
 - Posts NASA's Astronomy Picture of the Day to Bluesky
 - Posts NASA EPIC Earth imagery weekly
 - Posts ESA/Hubble archive imagery weekly
+- Posts new ESA/Webb Picture of the Month images when they appear
 - Automatically compresses images to meet Bluesky's size limits
 - Supports image APODs and video APODs with Bluesky link cards
 - Includes alt text plus a source and credit reply for each post
@@ -53,6 +54,19 @@ The `src/post-hubble.ts` script:
 
 The weekly rotation starts at `potw1101a`, advances by one archive image per week, and wraps back to the start after `potw2552a`.
 
+## ESA/Webb Picture of the Month
+
+The `src/post-webb.ts` script:
+
+1. fetches the latest ESA/Webb Picture of the Month from `https://esawebb.org/images/potm/json/`;
+2. fetches image metadata from `https://esawebb.org/images/{imageId}/api/json/`;
+3. skips the run when that `imageId` has already been posted;
+4. downloads and compresses the image below Bluesky's 1 MB limit;
+5. publishes the image with a short Webb-focused caption;
+6. replies to the main post with ESA/Webb credit and the source URL.
+
+The duplicate guard is stored in `.bot-state.json`, which is ignored by git.
+
 ## Local setup
 
 Prerequisite: Node.js 24 or later.
@@ -75,6 +89,7 @@ Fill in `.env`, then test without posting:
 npm run dry-run:apod
 npm run dry-run:epic
 npm run dry-run:hubble
+npm run dry-run:webb
 ```
 
 Publish for real:
@@ -83,6 +98,7 @@ Publish for real:
 npm run post:apod
 npm run post:epic
 npm run post:hubble
+npm run post:webb
 ```
 
 ## Local cron

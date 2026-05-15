@@ -22,6 +22,7 @@ const BLUESKY_TEXT_LIMIT = 300;
 const MAIN_POST_HASHTAGS = "#Astronomy #Space";
 const EPIC_POST_TEXT = "Today's Earth selfie from one million miles away\n\n#Earth #Space";
 const HUBBLE_POST_HASHTAGS = "#Hubble #Space";
+const WEBB_POST_HASHTAGS = "#JWST #Space";
 const HUBBLE_FIRST_ARCHIVE_YEAR = 2011;
 const HUBBLE_LAST_ARCHIVE_YEAR = 2025;
 const HUBBLE_ARCHIVE_YEAR_WEEKS = 52;
@@ -69,6 +70,18 @@ export const hubbleImageDetailSchema = z
   .passthrough();
 
 export type HubbleImageDetail = z.infer<typeof hubbleImageDetailSchema>;
+
+export const webbPotmImageSchema = z
+  .object({
+    image: z.string().nullable(),
+    release_date: z.string(),
+    title: z.string(),
+  })
+  .passthrough();
+
+export const webbPotmImagesSchema = z.array(webbPotmImageSchema);
+
+export type WebbPotmImage = z.infer<typeof webbPotmImageSchema>;
 
 export function requireEnv(name: string): string {
   const value = process.env[name];
@@ -154,20 +167,40 @@ export function buildEpicImageUrl(epicImage: EpicImage): string {
 export function buildHubblePostText(detail: HubbleImageDetail): string {
   const separator = "\n\n";
   const maxTitleLength = BLUESKY_TEXT_LIMIT - separator.length - HUBBLE_POST_HASHTAGS.length;
-  return `${truncateText(normalizeHubbleText(detail.Title), maxTitleLength)}${separator}${HUBBLE_POST_HASHTAGS}`;
+  return `${truncateText(normalizeImageDetailText(detail.Title), maxTitleLength)}${separator}${HUBBLE_POST_HASHTAGS}`;
 }
 
 export function buildHubbleSourceReplyText(detail: HubbleImageDetail): string {
-  const credit = normalizeHubbleText(detail.Credit) || "ESA/Hubble & NASA";
+  const credit = normalizeImageDetailText(detail.Credit) || "ESA/Hubble & NASA";
   const source = detail.ReferenceURL ?? `https://esahubble.org/images/${detail.ID}/`;
   return `Credit: ${credit}\nSource: ${source}`;
 }
 
 export function buildHubbleAltText(detail: HubbleImageDetail): string {
-  return truncateText(stripHtml(normalizeHubbleText(detail.Description)), 1000);
+  return truncateText(stripHtml(normalizeImageDetailText(detail.Description)), 1000);
 }
 
 export function buildHubbleImageUrl(detail: HubbleImageDetail): string {
+  return detail.formats_url.large ?? detail.formats_url.screen;
+}
+
+export function buildWebbPostText(detail: HubbleImageDetail): string {
+  const separator = "\n\n";
+  const maxTitleLength = BLUESKY_TEXT_LIMIT - separator.length - WEBB_POST_HASHTAGS.length;
+  return `${truncateText(normalizeImageDetailText(detail.Title), maxTitleLength)}${separator}${WEBB_POST_HASHTAGS}`;
+}
+
+export function buildWebbSourceReplyText(detail: HubbleImageDetail): string {
+  const credit = normalizeImageDetailText(detail.Credit) || "ESA/Webb, NASA & CSA";
+  const source = detail.ReferenceURL ?? `https://esawebb.org/images/${detail.ID}/`;
+  return `Credit: ${credit}\nSource: ${source}`;
+}
+
+export function buildWebbAltText(detail: HubbleImageDetail): string {
+  return truncateText(stripHtml(normalizeImageDetailText(detail.Description)), 1000);
+}
+
+export function buildWebbImageUrl(detail: HubbleImageDetail): string {
   return detail.formats_url.large ?? detail.formats_url.screen;
 }
 
@@ -204,7 +237,7 @@ function stripHtml(html: string): string {
     .trim();
 }
 
-function normalizeHubbleText(text: string | undefined): string {
+function normalizeImageDetailText(text: string | undefined): string {
   if (!text) {
     return "";
   }

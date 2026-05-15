@@ -12,6 +12,8 @@
     "dry-run:epic": "DRY_RUN=true node --env-file=.env src/post-epic.ts",
     "post:hubble": "node --env-file=.env src/post-hubble.ts",
     "dry-run:hubble": "DRY_RUN=true node --env-file=.env src/post-hubble.ts",
+    "post:webb": "node --env-file=.env src/post-webb.ts",
+    "dry-run:webb": "DRY_RUN=true node --env-file=.env src/post-webb.ts",
     "install:cron": "node scripts/install-cron.ts",
     "run:with-retries": "node scripts/run-with-retries.ts",
     "test": "node --test",
