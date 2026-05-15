@@ -47,7 +47,7 @@ const jobs = [
   },
   {
     marker: `${CRON_MARKER_PREFIX}post-sdo`,
-    schedule: "0 18 * * 1",
+    schedule: "30 18 * * 1",
     command: `${shellQuote(npmPath)} run run:with-retries -- post:sdo`,
   },
 ];
