@@ -16,7 +16,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { readFile, writeFile } from "node:fs/promises";
+import { readFile, rename, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { z } from "zod";
 
@@ -50,7 +50,9 @@ export async function readBotState(): Promise<BotState> {
 }
 
 export async function writeBotState(state: BotState): Promise<void> {
-  await writeFile(STATE_PATH, `${JSON.stringify(state, null, 2)}\n`);
+  const temporaryPath = `${STATE_PATH}.${process.pid}.tmp`;
+  await writeFile(temporaryPath, `${JSON.stringify(state, null, 2)}\n`);
+  await rename(temporaryPath, STATE_PATH);
 }
 
 function isFileNotFoundError(error: unknown): boolean {
