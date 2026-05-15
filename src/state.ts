@@ -37,7 +37,6 @@ const publishedPostStateSchema = z.object({
 const botStateSchema = z
   .object({
     posts: z.record(z.string(), publishedPostStateSchema).optional(),
-    webbLastPostedImageId: z.string().optional(),
   })
   .passthrough();
 
