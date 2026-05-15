@@ -40,10 +40,14 @@ const SDO_IMAGES = [
 
 async function publishSdoPost(agent: Agent) {
   const uploads = await Promise.all(
-    SDO_IMAGES.map(async (image) => ({
-      alt: image.alt,
-      image: (await uploadImageBlob(agent, image.url)).data.blob,
-    })),
+    SDO_IMAGES.map(async (image) => {
+      const upload = await uploadImageBlob(agent, image.url);
+      return {
+        alt: image.alt,
+        aspectRatio: upload.aspectRatio,
+        image: upload.data.blob,
+      };
+    }),
   );
 
   return agent.post({

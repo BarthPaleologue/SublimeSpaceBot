@@ -52,6 +52,7 @@ async function publishImagePost(agent: Agent, apod: Apod) {
       images: [
         {
           alt: buildAltText(apod),
+          aspectRatio: upload.aspectRatio,
           image: upload.data.blob,
         },
       ],

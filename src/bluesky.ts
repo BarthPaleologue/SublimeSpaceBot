@@ -25,8 +25,14 @@ const MAX_BSKY_IMAGE_BYTES = 1_000_000;
 const TARGET_IMAGE_BYTES = 950_000;
 
 type DownloadedImage = {
+  aspectRatio: AspectRatio;
   bytes: Buffer;
   mimeType: string;
+};
+
+type AspectRatio = {
+  height: number;
+  width: number;
 };
 
 export type PostRef = {
@@ -80,9 +86,14 @@ export async function uploadImageBlob(agent: Agent, imageUrl: string) {
       ? downloaded
       : await compressForBluesky(downloaded.bytes);
 
-  return agent.uploadBlob(image.bytes, {
+  const upload = await agent.uploadBlob(image.bytes, {
     encoding: image.mimeType,
   });
+
+  return {
+    aspectRatio: image.aspectRatio,
+    data: upload.data,
+  };
 }
 
 async function downloadImage(imageUrl: string): Promise<DownloadedImage> {
@@ -95,7 +106,7 @@ async function downloadImage(imageUrl: string): Promise<DownloadedImage> {
 
   const mimeType = detectImageMimeType(response, imageUrl);
   const bytes = Buffer.from(await response.arrayBuffer());
-  return { bytes, mimeType };
+  return { aspectRatio: await readAspectRatio(bytes), bytes, mimeType };
 }
 
 async function compressForBluesky(bytes: Buffer): Promise<DownloadedImage> {
@@ -110,7 +121,11 @@ async function compressForBluesky(bytes: Buffer): Promise<DownloadedImage> {
       .toBuffer();
 
     if (output.length <= TARGET_IMAGE_BYTES) {
-      return { bytes: output, mimeType: "image/jpeg" };
+      return {
+        aspectRatio: await readAspectRatio(output),
+        bytes: output,
+        mimeType: "image/jpeg",
+      };
     }
 
     width = Math.max(900, Math.round(width * 0.82));
@@ -118,4 +133,16 @@ async function compressForBluesky(bytes: Buffer): Promise<DownloadedImage> {
   }
 
   throw new Error(`Could not compress image under ${MAX_BSKY_IMAGE_BYTES} bytes`);
+}
+
+async function readAspectRatio(bytes: Buffer): Promise<AspectRatio> {
+  const metadata = await sharp(bytes).metadata();
+  if (!metadata.width || !metadata.height) {
+    throw new Error("Could not read image dimensions");
+  }
+
+  return {
+    height: metadata.height,
+    width: metadata.width,
+  };
 }

@@ -61,6 +61,7 @@ async function publishWebbPost(agent: Agent, input: WebbPostInput) {
       images: [
         {
           alt: buildWebbAltText(input.detail),
+          aspectRatio: upload.aspectRatio,
           image: upload.data.blob,
         },
       ],

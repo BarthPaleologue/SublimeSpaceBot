@@ -52,6 +52,7 @@ async function publishEpicPost(agent: Agent, epicImage: EpicImage, imageUrl: str
       images: [
         {
           alt: buildEpicAltText(epicImage),
+          aspectRatio: upload.aspectRatio,
           image: upload.data.blob,
         },
       ],

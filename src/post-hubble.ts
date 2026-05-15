@@ -58,6 +58,7 @@ async function publishHubblePost(agent: Agent, input: HubblePostInput) {
       images: [
         {
           alt: buildHubbleAltText(input.detail),
+          aspectRatio: upload.aspectRatio,
           image: upload.data.blob,
         },
       ],
