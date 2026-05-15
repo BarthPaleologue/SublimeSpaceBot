@@ -35,6 +35,8 @@ import {
   buildHubblePostText,
   buildHubbleSourceReplyText,
   buildMainPostText,
+  buildSdoPostText,
+  buildSdoSourceReplyText,
   buildSourceReplyText,
   buildWebbAltText,
   buildWebbImageUrl,
@@ -194,6 +196,20 @@ test("buildEpicImageUrl rejects invalid dates", () => {
         }),
       ),
     /Invalid EPIC image date/,
+  );
+});
+
+test("buildSdoPostText describes the latest SDO view", () => {
+  assert.equal(
+    buildSdoPostText(),
+    "The Sun today, seen by NASA's Solar Dynamics Observatory\n\n#Sun #Space",
+  );
+});
+
+test("buildSdoSourceReplyText includes NASA SDO credit and source", () => {
+  assert.equal(
+    buildSdoSourceReplyText(),
+    "Credit: NASA/SDO/AIA\nSource: https://sdo.gsfc.nasa.gov/data/",
   );
 });
 

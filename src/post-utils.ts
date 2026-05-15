@@ -22,6 +22,7 @@ const BLUESKY_TEXT_LIMIT = 300;
 const MAIN_POST_HASHTAGS = "#Astronomy #Space";
 const EPIC_POST_TEXT = "Today's Earth selfie from one million miles away\n\n#Earth #Space";
 const HUBBLE_POST_HASHTAGS = "#Hubble #Space";
+const SDO_POST_TEXT = "The Sun today, seen by NASA's Solar Dynamics Observatory\n\n#Sun #Space";
 const WEBB_POST_HASHTAGS = "#JWST #Space";
 const HUBBLE_FIRST_ARCHIVE_YEAR = 2011;
 const HUBBLE_LAST_ARCHIVE_YEAR = 2025;
@@ -162,6 +163,14 @@ export function buildEpicImageUrl(epicImage: EpicImage): string {
   }
 
   return `https://epic.gsfc.nasa.gov/archive/natural/${year}/${month}/${day}/png/${epicImage.image}.png`;
+}
+
+export function buildSdoPostText(): string {
+  return SDO_POST_TEXT;
+}
+
+export function buildSdoSourceReplyText(): string {
+  return "Credit: NASA/SDO/AIA\nSource: https://sdo.gsfc.nasa.gov/data/";
 }
 
 export function buildHubblePostText(detail: HubbleImageDetail): string {

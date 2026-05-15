@@ -12,6 +12,7 @@ This project is licensed under the AGPL-3.0-or-later License. See the [LICENSE.m
 
 - Posts NASA's Astronomy Picture of the Day to Bluesky
 - Posts NASA EPIC Earth imagery weekly
+- Posts NASA SDO solar imagery weekly
 - Posts ESA/Hubble archive imagery weekly
 - Posts new ESA/Webb Picture of the Month images when they appear
 - Automatically compresses images to meet Bluesky's size limits
@@ -41,6 +42,15 @@ The `src/post-epic.ts` script:
 3. downloads and compresses the image below Bluesky's 1 MB limit;
 4. publishes the image with a short Earth-focused caption;
 5. replies to the main post with NASA EPIC/DSCOVR credit and the source image URL.
+
+## NASA SDO solar imagery
+
+The `src/post-sdo.ts` script:
+
+1. downloads the latest Solar Dynamics Observatory images from `https://sdo.gsfc.nasa.gov/assets/img/latest/`;
+2. compresses images below Bluesky's 1 MB limit;
+3. publishes a multi-image post with complementary solar views;
+4. replies to the main post with NASA/SDO/AIA credit and the source URL.
 
 ## ESA/Hubble archive imagery
 
@@ -89,6 +99,7 @@ Fill in `.env`, then test without posting:
 npm run dry-run:apod
 npm run dry-run:epic
 npm run dry-run:hubble
+npm run dry-run:sdo
 npm run dry-run:webb
 ```
 
@@ -98,6 +109,7 @@ Publish for real:
 npm run post:apod
 npm run post:epic
 npm run post:hubble
+npm run post:sdo
 npm run post:webb
 ```
 

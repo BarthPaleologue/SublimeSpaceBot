@@ -45,6 +45,11 @@ const jobs = [
     schedule: "0 18 * * *",
     command: `${shellQuote(npmPath)} run run:with-retries -- post:webb`,
   },
+  {
+    marker: `${CRON_MARKER_PREFIX}post-sdo`,
+    schedule: "0 18 * * 1",
+    command: `${shellQuote(npmPath)} run run:with-retries -- post:sdo`,
+  },
 ];
 
 function getExecutablePath(command: string): string {
