@@ -110,8 +110,9 @@ async function main(): Promise<void> {
     JSON.stringify(
       {
         imageId,
-        posted: !publication.skipped,
+        mainPostCreated: publication.mainPostCreated,
         skipped: publication.skipped,
+        sourceReplyCreated: publication.sourceReplyCreated,
         uri: publication.mainPost?.uri,
         cid: publication.mainPost?.cid,
         sourceReplyUri: publication.sourceReply?.uri,

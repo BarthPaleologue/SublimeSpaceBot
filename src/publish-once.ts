@@ -30,8 +30,10 @@ type PublishOnceInput = {
 
 type PublishOnceResult = {
   mainPost?: PostRef;
+  mainPostCreated: boolean;
   skipped: boolean;
   sourceReply?: PostRef;
+  sourceReplyCreated: boolean;
 };
 
 export async function publishOnce(input: PublishOnceInput): Promise<PublishOnceResult> {
@@ -41,8 +43,10 @@ export async function publishOnce(input: PublishOnceInput): Promise<PublishOnceR
   if (published?.sourceReply) {
     return {
       mainPost: published.mainPost,
+      mainPostCreated: false,
       skipped: true,
       sourceReply: published.sourceReply,
+      sourceReplyCreated: false,
     };
   }
 
@@ -57,8 +61,10 @@ export async function publishOnce(input: PublishOnceInput): Promise<PublishOnceR
 
     return {
       mainPost: published.mainPost,
+      mainPostCreated: false,
       skipped: false,
       sourceReply,
+      sourceReplyCreated: true,
     };
   }
 
@@ -76,7 +82,9 @@ export async function publishOnce(input: PublishOnceInput): Promise<PublishOnceR
 
   return {
     mainPost,
+    mainPostCreated: true,
     skipped: false,
     sourceReply,
+    sourceReplyCreated: true,
   };
 }
