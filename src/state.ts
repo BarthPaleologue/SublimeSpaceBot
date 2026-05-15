@@ -21,7 +21,7 @@ import { join } from "node:path";
 import { z } from "zod";
 import { type PostRef } from "./bluesky.ts";
 
-const STATE_PATH = join(import.meta.dirname, "..", ".bot-state.json");
+const DEFAULT_STATE_PATH = join(import.meta.dirname, "..", ".bot-state.json");
 
 const postRefSchema = z.object({
   cid: z.string(),
@@ -46,8 +46,8 @@ export type PublishedPostState = z.infer<typeof publishedPostStateSchema>;
 
 export async function readBotState(): Promise<BotState> {
   try {
-    const text = await readFile(STATE_PATH, "utf8");
-    const json = JSON.parse(text);
+    const text = await readFile(getStatePath(), "utf8");
+    const json = parseStateJson(text);
     const result = botStateSchema.safeParse(json);
     if (!result.success) {
       throw new Error(`Invalid bot state: ${z.prettifyError(result.error)}`);
@@ -64,9 +64,10 @@ export async function readBotState(): Promise<BotState> {
 }
 
 export async function writeBotState(state: BotState): Promise<void> {
-  const temporaryPath = `${STATE_PATH}.${process.pid}.tmp`;
+  const statePath = getStatePath();
+  const temporaryPath = `${statePath}.${process.pid}.tmp`;
   await writeFile(temporaryPath, `${JSON.stringify(state, null, 2)}\n`);
-  await rename(temporaryPath, STATE_PATH);
+  await rename(temporaryPath, statePath);
 }
 
 export function getPublishedPostState(
@@ -104,4 +105,17 @@ export function toPostRef(post: PostRef): PostRef {
 
 function isFileNotFoundError(error: unknown): boolean {
   return error instanceof Error && "code" in error && error.code === "ENOENT";
+}
+
+function getStatePath(): string {
+  return process.env.BOT_STATE_PATH || DEFAULT_STATE_PATH;
+}
+
+function parseStateJson(text: string): unknown {
+  try {
+    return JSON.parse(text);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Invalid bot state JSON: ${message}`);
+  }
 }

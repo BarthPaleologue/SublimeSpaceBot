@@ -23,6 +23,7 @@ import { getPublishedPostState, readBotState, savePublishedPostState, toPostRef 
 type PublishOnceInput = {
   agent: Agent;
   itemKey: string;
+  publishSourceReply?: (agent: Agent, text: string, parent: PostRef) => Promise<PostRef>;
   publishMainPost: () => Promise<PostRef>;
   source: string;
   sourceReplyText: string;
@@ -51,9 +52,7 @@ export async function publishOnce(input: PublishOnceInput): Promise<PublishOnceR
   }
 
   if (published?.mainPost) {
-    const sourceReply = toPostRef(
-      await publishReply(input.agent, input.sourceReplyText, published.mainPost),
-    );
+    const sourceReply = toPostRef(await publishSourceReply(input, published.mainPost));
     await savePublishedPostState(state, input.source, {
       ...published,
       sourceReply,
@@ -73,7 +72,7 @@ export async function publishOnce(input: PublishOnceInput): Promise<PublishOnceR
     itemKey: input.itemKey,
     mainPost,
   });
-  const sourceReply = toPostRef(await publishReply(input.agent, input.sourceReplyText, mainPost));
+  const sourceReply = toPostRef(await publishSourceReply(input, mainPost));
   await savePublishedPostState(stateAfterMainPost, input.source, {
     itemKey: input.itemKey,
     mainPost,
@@ -87,4 +86,8 @@ export async function publishOnce(input: PublishOnceInput): Promise<PublishOnceR
     sourceReply,
     sourceReplyCreated: true,
   };
+}
+
+function publishSourceReply(input: PublishOnceInput, parent: PostRef): Promise<PostRef> {
+  return (input.publishSourceReply ?? publishReply)(input.agent, input.sourceReplyText, parent);
 }
