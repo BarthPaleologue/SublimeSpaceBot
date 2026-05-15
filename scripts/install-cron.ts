@@ -18,12 +18,14 @@
 
 import { execFileSync, spawnSync } from "node:child_process";
 import { realpathSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 
 const CRON_MARKER_PREFIX = "sublime-space-bot:";
 
 const repoRoot = realpathSync(join(import.meta.dirname, ".."));
+const nodePath = getExecutablePath("node");
 const npmPath = getExecutablePath("npm");
+const cronPath = `${dirname(nodePath)}:/usr/local/bin:/usr/bin:/bin`;
 const jobs = [
   {
     marker: `${CRON_MARKER_PREFIX}post-apod`,
@@ -83,7 +85,7 @@ function readCurrentCrontab(): string[] {
 const existingLines = readCurrentCrontab().filter((line) => !line.includes(CRON_MARKER_PREFIX));
 const botLines = jobs.map(
   (job) =>
-    `${job.schedule} cd ${shellQuote(repoRoot)} && ${job.command} >> bot.log 2>&1 # ${job.marker}`,
+    `${job.schedule} PATH=${shellQuote(cronPath)}; cd ${shellQuote(repoRoot)} && ${job.command} >> bot.log 2>&1 # ${job.marker}`,
 );
 const nextCrontab = [...existingLines, ...botLines].join("\n") + "\n";
 
