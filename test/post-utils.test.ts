@@ -162,7 +162,7 @@ test("buildSourceReplyText preserves source URL when credit is long", () => {
 test("buildEpicPostText includes Earth discovery hashtags", () => {
   assert.equal(
     buildEpicPostText(),
-    "Today's Earth selfie from one million miles away\n\n#Earth #Space",
+    "Today's Earth selfie from Sun-Earth L1, about 1.5 million km away\n\n#Earth #Space",
   );
 });
 

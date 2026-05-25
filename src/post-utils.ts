@@ -20,7 +20,8 @@ import { z } from "zod";
 
 const BLUESKY_TEXT_LIMIT = 300;
 const MAIN_POST_HASHTAGS = "#Astronomy #Space";
-const EPIC_POST_TEXT = "Today's Earth selfie from one million miles away\n\n#Earth #Space";
+const EPIC_POST_TEXT =
+  "Today's Earth selfie from Sun-Earth L1, about 1.5 million km away\n\n#Earth #Space";
 const HUBBLE_POST_HASHTAGS = "#Hubble #Space";
 const SDO_POST_TEXT = "The Sun today, seen by NASA's Solar Dynamics Observatory\n\n#Sun #Space";
 const WEBB_POST_HASHTAGS = "#JWST #Space";
