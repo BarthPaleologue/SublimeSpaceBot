@@ -23,6 +23,7 @@ const MAIN_POST_HASHTAGS = "#Astronomy #Space";
 const EPIC_POST_TEXT =
   "Today's Earth selfie from Sun-Earth L1, about 1.5 million km away\n\n#Earth #Space";
 const HUBBLE_POST_HASHTAGS = "#Hubble #Space";
+const NOIRLAB_POST_HASHTAGS = "#NOIRLab #Astronomy #Space";
 const SDO_POST_TEXT = "The Sun today, seen by NASA's Solar Dynamics Observatory\n\n#Sun #Space";
 const WEBB_POST_HASHTAGS = "#JWST #Space";
 const HUBBLE_FIRST_ARCHIVE_YEAR = 2011;
@@ -72,6 +73,17 @@ export const hubbleImageDetailSchema = z
   .passthrough();
 
 export type HubbleImageDetail = z.infer<typeof hubbleImageDetailSchema>;
+
+export const noirlabImageOfTheWeekSchema = z.object({
+  description: z.string(),
+  guid: z.url(),
+  imageUrl: z.url(),
+  link: z.url(),
+  pubDate: z.string(),
+  title: z.string(),
+});
+
+export type NoirlabImageOfTheWeek = z.infer<typeof noirlabImageOfTheWeekSchema>;
 
 export const webbPotmImageSchema = z
   .object({
@@ -224,6 +236,25 @@ export function buildWebbImageUrl(detail: HubbleImageDetail): string {
   return detail.formats_url.large ?? detail.formats_url.screen;
 }
 
+export function buildNoirlabPostText(image: NoirlabImageOfTheWeek): string {
+  const separator = "\n\n";
+  const maxTitleLength = BLUESKY_TEXT_LIMIT - separator.length - NOIRLAB_POST_HASHTAGS.length;
+  return `${truncateText(decodeHtmlEntities(image.title), maxTitleLength)}${separator}${NOIRLAB_POST_HASHTAGS}`;
+}
+
+export function buildNoirlabSourceReplyText(image: NoirlabImageOfTheWeek): string {
+  return buildCreditSourceReply("NSF NOIRLab", image.guid);
+}
+
+export function buildNoirlabAltText(image: NoirlabImageOfTheWeek): string {
+  return truncateText(stripHtml(decodeHtmlEntities(image.description)), 1000);
+}
+
+export function buildNoirlabImageId(image: NoirlabImageOfTheWeek): string {
+  const match = /\/images\/([^/]+)\//.exec(image.guid) ?? /\/images\/([^/]+)\//.exec(image.link);
+  return match?.[1] ?? image.guid;
+}
+
 export function buildHubbleArchiveImageId(offset: number): string {
   if (!Number.isInteger(offset) || offset < 0) {
     throw new Error(`Invalid ESA/Hubble archive offset: ${offset}`);
@@ -261,7 +292,10 @@ function buildCreditSourceReply(credit: string, source: string): string {
 
 function stripHtml(html: string): string {
   return html
+    .replaceAll("&lt;", "<")
+    .replaceAll("&gt;", ">")
     .replace(/<[^>]*>/g, "")
+    .replace(/&nbsp;/g, " ")
     .replaceAll("&lt;", "<")
     .replaceAll("&gt;", ">")
     .replaceAll("&amp;", "&")
@@ -269,6 +303,20 @@ function stripHtml(html: string): string {
     .replaceAll("&#39;", "'")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+function decodeHtmlEntities(text: string): string {
+  return text
+    .replaceAll("&lt;", "<")
+    .replaceAll("&gt;", ">")
+    .replaceAll("&amp;", "&")
+    .replaceAll("&quot;", '"')
+    .replaceAll("&#39;", "'")
+    .replaceAll("&apos;", "'")
+    .replace(/&#(\d+);/g, (_, codepoint: string) => String.fromCodePoint(Number(codepoint)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, codepoint: string) =>
+      String.fromCodePoint(Number.parseInt(codepoint, 16)),
+    );
 }
 
 function normalizeImageDetailText(text: string | undefined): string {

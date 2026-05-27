@@ -43,6 +43,11 @@ const jobs = [
     command: `${shellQuote(corepackPath)} pnpm run:with-retries -- post:hubble`,
   },
   {
+    marker: `${CRON_MARKER_PREFIX}post-noirlab`,
+    schedule: "0 19 * * 1",
+    command: `${shellQuote(corepackPath)} pnpm run:with-retries -- post:noirlab`,
+  },
+  {
     marker: `${CRON_MARKER_PREFIX}post-webb`,
     schedule: "0 18 * * *",
     command: `${shellQuote(corepackPath)} pnpm run:with-retries -- post:webb`,

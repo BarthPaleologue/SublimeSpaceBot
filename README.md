@@ -15,6 +15,7 @@ This project is licensed under the AGPL-3.0-or-later License. See the [LICENSE.m
 - Posts NASA SDO solar imagery weekly
 - Posts ESA/Hubble archive imagery weekly
 - Posts new ESA/Webb Picture of the Month images when they appear
+- Posts NSF NOIRLab Image of the Week imagery weekly
 - Automatically compresses images to meet Bluesky's size limits
 - Supports image APODs and video APODs with Bluesky link cards
 - Includes alt text plus a source and credit reply for each post
@@ -77,6 +78,17 @@ The `src/post-webb.ts` script:
 
 The duplicate guard is stored in `.bot-state.json`, which is ignored by git.
 
+## NSF NOIRLab Image of the Week
+
+The `src/post-noirlab.ts` script:
+
+1. fetches the latest NSF NOIRLab Image of the Week from `https://noirlab.edu/public/images/iotw/feed/`;
+2. reads the image, title, source, and publication date from the RSS item;
+3. skips the run when that image has already been posted;
+4. downloads and compresses the image below Bluesky's 1 MB limit;
+5. publishes the image with a short NOIRLab-focused caption;
+6. replies to the main post with NSF NOIRLab credit and the source URL.
+
 ## Local setup
 
 Prerequisite: Node.js 24 or later with Corepack enabled.
@@ -100,6 +112,7 @@ Fill in `.env`, then test without posting:
 pnpm dry-run:apod
 pnpm dry-run:epic
 pnpm dry-run:hubble
+pnpm dry-run:noirlab
 pnpm dry-run:sdo
 pnpm dry-run:webb
 ```
@@ -110,6 +123,7 @@ Publish for real:
 pnpm post:apod
 pnpm post:epic
 pnpm post:hubble
+pnpm post:noirlab
 pnpm post:sdo
 pnpm post:webb
 ```

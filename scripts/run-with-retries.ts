@@ -25,6 +25,7 @@ const ALLOWED_COMMANDS = new Set([
   "post:apod",
   "post:epic",
   "post:hubble",
+  "post:noirlab",
   "post:sdo",
   "post:webb",
 ]);

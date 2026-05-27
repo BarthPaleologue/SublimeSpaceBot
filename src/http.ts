@@ -38,3 +38,14 @@ export async function fetchJson<T>(url: URL, schema: z.ZodType<T>): Promise<T> {
 
   return result.data;
 }
+
+export async function fetchText(url: URL): Promise<string> {
+  const response = await fetch(url, {
+    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+  });
+  if (!response.ok) {
+    throw new Error(`GET ${url.toString()} failed: ${response.status} ${response.statusText}`);
+  }
+
+  return response.text();
+}

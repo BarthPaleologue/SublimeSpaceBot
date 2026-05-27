@@ -23,6 +23,7 @@ import {
   type Apod,
   type EpicImage,
   type HubbleImageDetail,
+  type NoirlabImageOfTheWeek,
   buildAltText,
   buildApodPageUrl,
   buildEpicAltText,
@@ -36,6 +37,10 @@ import {
   buildHubblePostText,
   buildHubbleSourceReplyText,
   buildMainPostText,
+  buildNoirlabAltText,
+  buildNoirlabImageId,
+  buildNoirlabPostText,
+  buildNoirlabSourceReplyText,
   buildSdoPostText,
   buildSdoSourceReplyText,
   buildSourceReplyText,
@@ -97,6 +102,19 @@ function createWebbDetail(overrides: Partial<HubbleImageDetail> = {}): HubbleIma
     },
     ...overrides,
   });
+}
+
+function createNoirlabImage(overrides: Partial<NoirlabImageOfTheWeek> = {}): NoirlabImageOfTheWeek {
+  return {
+    description:
+      "&lt;p&gt;A dramatic view of Gemini South under star trails &amp; moonlight.&lt;/p&gt;",
+    guid: "https://noirlab.edu/public/images/iotw2620a/",
+    imageUrl: "https://storage.noirlab.edu/media/archives/images/screen/iotw2620a.jpg",
+    link: "https://noirlab.edu/public/images/iotw2620a/",
+    pubDate: "Wed, 20 May 2026 12:00:00 -0700",
+    title: "Stars Sweep Through the Sky Over Gemini South",
+    ...overrides,
+  };
 }
 
 test("truncateText keeps short text unchanged", () => {
@@ -285,6 +303,31 @@ test("buildHubbleArchiveImageId maps weekly offsets to ESA/Hubble POTW IDs", () 
   assert.equal(buildHubbleArchiveImageId(52), "potw1201a");
   assert.equal(buildHubbleArchiveImageId(HUBBLE_ARCHIVE_IMAGE_COUNT - 1), "potw2552a");
   assert.equal(buildHubbleArchiveImageId(HUBBLE_ARCHIVE_IMAGE_COUNT), "potw1101a");
+});
+
+test("buildNoirlabPostText includes the title and adds hashtags", () => {
+  assert.equal(
+    buildNoirlabPostText(createNoirlabImage()),
+    "Stars Sweep Through the Sky Over Gemini South\n\n#NOIRLab #Astronomy #Space",
+  );
+});
+
+test("buildNoirlabSourceReplyText includes NSF NOIRLab credit and source", () => {
+  assert.equal(
+    buildNoirlabSourceReplyText(createNoirlabImage()),
+    "Credit: NSF NOIRLab\nSource: https://noirlab.edu/public/images/iotw2620a/",
+  );
+});
+
+test("buildNoirlabAltText decodes RSS HTML and strips tags", () => {
+  assert.equal(
+    buildNoirlabAltText(createNoirlabImage()),
+    "A dramatic view of Gemini South under star trails & moonlight.",
+  );
+});
+
+test("buildNoirlabImageId extracts the image ID from the source URL", () => {
+  assert.equal(buildNoirlabImageId(createNoirlabImage()), "iotw2620a");
 });
 
 test("buildWebbPostText includes the title and adds hashtags", () => {
