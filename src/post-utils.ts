@@ -115,7 +115,7 @@ export function buildMainPostText(apod: Apod): string {
 
 export function buildSourceReplyText(apod: Apod): string {
   const credit = apod.copyright || "NASA";
-  const source = `Source: ${apod.url}`;
+  const source = `Source: ${buildApodPageUrl(apod)}`;
   const creditPrefix = "Credit: ";
   const separator = "\n";
   const maxCreditLength =
@@ -126,6 +126,16 @@ export function buildSourceReplyText(apod: Apod): string {
   }
 
   return `${creditPrefix}${truncateText(credit, maxCreditLength)}${separator}${source}`;
+}
+
+export function buildApodPageUrl(apod: Apod): string {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(apod.date);
+  if (!match) {
+    throw new Error(`Invalid APOD date: ${apod.date}`);
+  }
+
+  const [, year, month, day] = match;
+  return `https://apod.nasa.gov/apod/ap${year.slice(-2)}${month}${day}.html`;
 }
 
 export function buildAltText(apod: Apod): string {

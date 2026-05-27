@@ -24,6 +24,7 @@ import {
   type EpicImage,
   type HubbleImageDetail,
   buildAltText,
+  buildApodPageUrl,
   buildEpicAltText,
   buildEpicImageUrl,
   buildEpicPostText,
@@ -136,27 +137,50 @@ test("buildSourceReplyText includes credit and source", () => {
     }),
   );
 
-  assert.equal(reply, "Credit: NASA\nSource: https://apod.nasa.gov/test");
+  assert.equal(reply, "Credit: NASA\nSource: https://apod.nasa.gov/apod/ap260513.html");
 });
 
 test("buildSourceReplyText falls back to NASA credit", () => {
   const reply = buildSourceReplyText(createApod());
 
-  assert.equal(reply, "Credit: NASA\nSource: https://apod.nasa.gov/test");
+  assert.equal(reply, "Credit: NASA\nSource: https://apod.nasa.gov/apod/ap260513.html");
 });
 
 test("buildSourceReplyText preserves source URL when credit is long", () => {
-  const source = "https://apod.nasa.gov/test";
+  const source = "https://apod.nasa.gov/apod/ap260513.html";
   const reply = buildSourceReplyText(
     createApod({
       copyright: "A".repeat(500),
-      url: source,
     }),
   );
 
   assert.ok(reply.length <= 300);
   assert.ok(reply.endsWith(`\nSource: ${source}`));
   assert.match(reply, /^Credit: A+\.\.\./);
+});
+
+test("buildApodPageUrl builds the NASA explanation page URL from the APOD date", () => {
+  assert.equal(
+    buildApodPageUrl(
+      createApod({
+        date: "2026-05-25",
+        url: "https://apod.nasa.gov/apod/image/2605/ThackerayGlobs_Hayes_960.jpg",
+      }),
+    ),
+    "https://apod.nasa.gov/apod/ap260525.html",
+  );
+});
+
+test("buildApodPageUrl rejects invalid dates", () => {
+  assert.throws(
+    () =>
+      buildApodPageUrl(
+        createApod({
+          date: "not-a-date",
+        }),
+      ),
+    /Invalid APOD date/,
+  );
 });
 
 test("buildEpicPostText includes Earth discovery hashtags", () => {
