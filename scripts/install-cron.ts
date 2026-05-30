@@ -30,32 +30,32 @@ const jobs = [
   {
     marker: `${CRON_MARKER_PREFIX}post-apod`,
     schedule: "0 17 * * *",
-    command: `${shellQuote(corepackPath)} pnpm run:with-retries -- post:apod`,
+    command: `${shellQuote(corepackPath)} pnpm run:with-retries post:apod`,
   },
   {
     marker: `${CRON_MARKER_PREFIX}post-epic`,
     schedule: "0 19 * * 3",
-    command: `${shellQuote(corepackPath)} pnpm run:with-retries -- post:epic`,
+    command: `${shellQuote(corepackPath)} pnpm run:with-retries post:epic`,
   },
   {
     marker: `${CRON_MARKER_PREFIX}post-hubble`,
     schedule: "0 19 * * 5",
-    command: `${shellQuote(corepackPath)} pnpm run:with-retries -- post:hubble`,
+    command: `${shellQuote(corepackPath)} pnpm run:with-retries post:hubble`,
   },
   {
     marker: `${CRON_MARKER_PREFIX}post-noirlab`,
     schedule: "0 19 * * 1",
-    command: `${shellQuote(corepackPath)} pnpm run:with-retries -- post:noirlab`,
+    command: `${shellQuote(corepackPath)} pnpm run:with-retries post:noirlab`,
   },
   {
     marker: `${CRON_MARKER_PREFIX}post-webb`,
     schedule: "0 18 * * *",
-    command: `${shellQuote(corepackPath)} pnpm run:with-retries -- post:webb`,
+    command: `${shellQuote(corepackPath)} pnpm run:with-retries post:webb`,
   },
   {
     marker: `${CRON_MARKER_PREFIX}post-sdo`,
     schedule: "30 18 * * 1",
-    command: `${shellQuote(corepackPath)} pnpm run:with-retries -- post:sdo`,
+    command: `${shellQuote(corepackPath)} pnpm run:with-retries post:sdo`,
   },
 ];
 

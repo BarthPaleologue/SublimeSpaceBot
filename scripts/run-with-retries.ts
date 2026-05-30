@@ -30,9 +30,9 @@ const ALLOWED_COMMANDS = new Set([
   "post:webb",
 ]);
 
-const command = process.argv[2];
+const command = process.argv.slice(2).find((argument) => argument !== "--");
 if (!command || !ALLOWED_COMMANDS.has(command)) {
-  console.error(`Usage: pnpm run:with-retries -- ${[...ALLOWED_COMMANDS].join("|")}`);
+  console.error(`Usage: pnpm run:with-retries ${[...ALLOWED_COMMANDS].join("|")}`);
   process.exitCode = 2;
 } else {
   await runWithRetries(command);
