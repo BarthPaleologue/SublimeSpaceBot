@@ -44,7 +44,7 @@ const jobs = [
   },
   {
     marker: `${CRON_MARKER_PREFIX}post-noirlab`,
-    schedule: "0 19 * * 1",
+    schedule: "0 19 * * 2",
     command: `${shellQuote(corepackPath)} pnpm run:with-retries post:noirlab`,
   },
   {
