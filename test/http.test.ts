@@ -18,7 +18,7 @@
 
 import assert from "node:assert/strict";
 import test from "node:test";
-import { redactSensitiveUrl } from "../src/http.ts";
+import { fetchWithRetries, redactSensitiveUrl } from "../src/http.ts";
 
 test("redactSensitiveUrl redacts API keys and token-like query params", () => {
   const url = new URL(
@@ -29,4 +29,48 @@ test("redactSensitiveUrl redacts API keys and token-like query params", () => {
     redactSensitiveUrl(url),
     "https://api.nasa.gov/planetary/apod?api_key=%3Credacted%3E&thumbs=true&access_token=%3Credacted%3E",
   );
+});
+
+test("fetchWithRetries retries until the fetcher succeeds", async () => {
+  let attempts = 0;
+
+  const result = await fetchWithRetries(
+    async () => {
+      attempts += 1;
+      if (attempts < 3) {
+        throw new Error("temporary failure");
+      }
+
+      return "ok";
+    },
+    {
+      retryCount: 5,
+      retryDelayMs: 0,
+    },
+  );
+
+  assert.equal(result, "ok");
+  assert.equal(attempts, 3);
+});
+
+test("fetchWithRetries throws the last error after all retries fail", async () => {
+  let attempts = 0;
+  const lastError = new Error("last failure");
+
+  await assert.rejects(
+    () =>
+      fetchWithRetries(
+        async () => {
+          attempts += 1;
+          throw lastError;
+        },
+        {
+          retryCount: 2,
+          retryDelayMs: 0,
+        },
+      ),
+    lastError,
+  );
+
+  assert.equal(attempts, 3);
 });

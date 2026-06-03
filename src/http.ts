@@ -16,6 +16,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+import { setTimeout } from "node:timers/promises";
 import { z } from "zod";
 
 export const FETCH_TIMEOUT_MS = 45_000;
@@ -30,6 +31,46 @@ export class HttpStatusError extends Error {
     this.status = status;
     this.statusText = statusText;
   }
+}
+
+type FetchWithRetriesOptions = {
+  label?: string;
+  retryCount: number;
+  retryDelayMs: number;
+};
+
+export async function fetchWithRetries<T>(
+  fetcher: () => Promise<T>,
+  options: FetchWithRetriesOptions,
+): Promise<T> {
+  let lastError: unknown;
+
+  for (let attempt = 1; attempt <= options.retryCount + 1; attempt += 1) {
+    try {
+      return await fetcher();
+    } catch (error) {
+      lastError = error;
+
+      if (attempt > options.retryCount) {
+        break;
+      }
+
+      const label = options.label ?? "Fetch";
+      console.warn(
+        label +
+          " attempt " +
+          attempt +
+          "/" +
+          (options.retryCount + 1) +
+          " failed; retrying in " +
+          options.retryDelayMs / 1000 +
+          "s",
+      );
+      await setTimeout(options.retryDelayMs);
+    }
+  }
+
+  throw lastError;
 }
 
 export async function fetchJson<T>(url: URL, schema: z.ZodType<T>): Promise<T> {

@@ -18,7 +18,7 @@
 
 import { type Agent } from "@atproto/api";
 import { createAgent, createPostRecord, uploadImageBlob } from "./bluesky.ts";
-import { fetchJson } from "./http.ts";
+import { fetchJson, fetchWithRetries } from "./http.ts";
 import { publishOnce } from "./publish-once.ts";
 import {
   type Apod,
@@ -29,13 +29,20 @@ import {
   buildSourceReplyText,
 } from "./post-utils.ts";
 
+const APOD_FETCH_RETRY_COUNT = 5;
+const APOD_FETCH_RETRY_DELAY_MS = 5_000;
+
 async function fetchApod(): Promise<Apod> {
   const apiKey = process.env.NASA_API_KEY || "DEMO_KEY";
   const url = new URL("https://api.nasa.gov/planetary/apod");
   url.searchParams.set("api_key", apiKey);
   url.searchParams.set("thumbs", "true");
 
-  return fetchJson(url, apodSchema);
+  return fetchWithRetries(() => fetchJson(url, apodSchema), {
+    label: "NASA APOD fetch",
+    retryCount: APOD_FETCH_RETRY_COUNT,
+    retryDelayMs: APOD_FETCH_RETRY_DELAY_MS,
+  });
 }
 
 async function publishTextPost(agent: Agent, apod: Apod) {
