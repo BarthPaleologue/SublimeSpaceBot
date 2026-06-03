@@ -18,11 +18,14 @@
 
 import { Agent, CredentialSession, RichText } from "@atproto/api";
 import sharp from "sharp";
-import { FETCH_TIMEOUT_MS } from "./http.ts";
+import { fetchWithRetries } from "./http.ts";
 import { detectImageMimeType, requireEnv } from "./post-utils.ts";
 
 const MAX_BSKY_IMAGE_BYTES = 1_000_000;
 const TARGET_IMAGE_BYTES = 950_000;
+const IMAGE_DOWNLOAD_TIMEOUT_MS = 180_000;
+const IMAGE_DOWNLOAD_RETRY_COUNT = 5;
+const IMAGE_DOWNLOAD_RETRY_DELAY_MS = 5_000;
 
 type DownloadedImage = {
   aspectRatio: AspectRatio;
@@ -97,8 +100,16 @@ export async function uploadImageBlob(agent: Agent, imageUrl: string) {
 }
 
 async function downloadImage(imageUrl: string): Promise<DownloadedImage> {
+  return fetchWithRetries(() => downloadImageOnce(imageUrl), {
+    label: "Image download",
+    retryCount: IMAGE_DOWNLOAD_RETRY_COUNT,
+    retryDelayMs: IMAGE_DOWNLOAD_RETRY_DELAY_MS,
+  });
+}
+
+async function downloadImageOnce(imageUrl: string): Promise<DownloadedImage> {
   const response = await fetch(imageUrl, {
-    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    signal: AbortSignal.timeout(IMAGE_DOWNLOAD_TIMEOUT_MS),
   });
   if (!response.ok) {
     throw new Error(`GET ${imageUrl} failed: ${response.status} ${response.statusText}`);
